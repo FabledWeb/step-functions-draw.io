@@ -614,10 +614,13 @@ Draw.loadPlugin(function(ui) {
 
     // build Pass to serve as params input to Task
     var paramsLabel =  label + ' -- Params';
-    var params = cell.getAttribute("skill_params") || "{}";
-    data[paramsLabel].Result = JSON.parse(params);
-    data[paramsLabel].ResultPath = '$.params';
-    data[paramsLabel].Next = label;
+    var params = JSON.parse(cell.getAttribute("skill_params") || "{}");
+    data[paramsLabel] = {
+      Type: "Pass",
+      Result: params,
+      ResultPath: '$.params',
+      Next: label
+    };
 
     return data;
   };
