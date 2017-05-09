@@ -46,6 +46,9 @@ Draw.loadPlugin(function(ui) {
     isChoice: function(cell){
       return (cell && cell.value && (cell.value.getAttribute("type") == "awssfChoice"));
     },
+    isSkill: function(cell){
+      return (cell && cell.value && (cell.value.getAttribute("type") == "awssfChoice"));
+    },
     isDefault: function(cell){
       return (cell && cell.value && (cell.value.getAttribute("type") == "awssfDefault"));
     },
@@ -116,7 +119,7 @@ Draw.loadPlugin(function(ui) {
       }
       else if (obj.type == 'Identifier'){
         res.unshift(obj.name);
-        return res.join(".");      
+        return res.join(".");
       }
     },
     parseJSEPValue: function (obj){
@@ -155,7 +158,7 @@ Draw.loadPlugin(function(ui) {
           Variable: varname
         };
         tmp[vartype + this.ops[obj.operator]] = val;
-        Object.assign(res, tmp);        
+        Object.assign(res, tmp);
       }
       return res;
     }
@@ -179,7 +182,7 @@ Draw.loadPlugin(function(ui) {
 
   function createPoint(awssf, state, geometry){
     var label = state.prototype.type;
-    if (geometry == null) geometry = new mxGeometry(0, 0, 40, 40); 
+    if (geometry == null) geometry = new mxGeometry(0, 0, 40, 40);
     var cell = new mxCell(label, geometry,'ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;');
     cell.vertex = true;
     cell.value = mxUtils.createXmlDocument().createElement('object');
@@ -321,8 +324,8 @@ Draw.loadPlugin(function(ui) {
     var cell = new mxCell('AWSconfig', new mxGeometry(0, 0, 70, 46), 'dashed=0;html=1;shape=mxgraph.aws2.non-service_specific.cloud;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;');
     cell.vertex = true;
     cell.value = mxUtils.createXmlDocument().createElement('object');
-    cell.setAttribute('label', 'config');  
-    cell.setAttribute('type', 'awssfAWSconfig');  
+    cell.setAttribute('label', 'config');
+    cell.setAttribute('type', 'awssfAWSconfig');
     cell.setAttribute('accessKeyId', '');
     cell.setAttribute('secretAccessKey', '');
     cell.setAttribute('region', '');
@@ -373,7 +376,7 @@ Draw.loadPlugin(function(ui) {
   }
   PassState.prototype.toJSON = function(cell, cells){
     var data = {};
-    var label = cell.getAttribute("label"); 
+    var label = cell.getAttribute("label");
     data[label] = {
       Type: "Pass",
       Resource: cell.getAttribute("resource")
@@ -394,7 +397,7 @@ Draw.loadPlugin(function(ui) {
       if (edge.source != cell) continue;
       if (awssfUtils.isNext(edge)){
         exist_next_edge = true;
-        Object.assign(data[label], edge.awssf.toJSON(edge, cells)) 
+        Object.assign(data[label], edge.awssf.toJSON(edge, cells))
       }
     }
     if (exist_next_edge == false || data[label].Next == 'End'){
@@ -428,7 +431,7 @@ Draw.loadPlugin(function(ui) {
       var edge = src.edges[i];
       if ((edge.source == src) && awssfUtils.isNext(edge))
         return CatchEdge.prototype.create();
-    }  
+    }
     return NextEdge.prototype.create();
   }
   TaskState.prototype.validate = function(cell, res){
@@ -450,7 +453,7 @@ Draw.loadPlugin(function(ui) {
   };
   TaskState.prototype.toJSON = function(cell, cells){
     var data = {};
-    var label = cell.getAttribute("label"); 
+    var label = cell.getAttribute("label");
     data[label] = {
       Type: "Task",
       Resource: cell.getAttribute("resource")
@@ -474,7 +477,7 @@ Draw.loadPlugin(function(ui) {
         if (Number(a.getAttribute("weight")) > Number(b.getAttribute("weight"))) return -1;
         if (Number(a.getAttribute("weight")) < Number(b.getAttribute("weight"))) return 1;
         return 0;
-      });    
+      });
       for(var i in sorted_edges){
         var edge = sorted_edges[i];
         if (edge.source != cell) continue;
@@ -488,7 +491,7 @@ Draw.loadPlugin(function(ui) {
             data[label]["Catch"].push(edge.awssf.toJSON(edge, cells));
           }else if (awssfUtils.isNext(edge)){
             exist_next_edge = true;
-            Object.assign(data[label], edge.awssf.toJSON(edge, cells)) 
+            Object.assign(data[label], edge.awssf.toJSON(edge, cells))
           }
         }
       }
@@ -534,7 +537,7 @@ Draw.loadPlugin(function(ui) {
   };
   ChoiceState.prototype.toJSON = function(cell, cells){
     var data = {};
-    var label = cell.getAttribute("label"); 
+    var label = cell.getAttribute("label");
     data[label] = {
       Type: "Choice",
       Choices: []
@@ -578,9 +581,9 @@ Draw.loadPlugin(function(ui) {
   WaitState = function(){};
   WaitState.prototype.type = 'Wait';
   WaitState.prototype.create = function(){
-    var cell = createState(this, WaitState, 'shape=mxgraph.flowchart.delay;whiteSpace=wrap;gradientColor=none;html=1;');  
+    var cell = createState(this, WaitState, 'shape=mxgraph.flowchart.delay;whiteSpace=wrap;gradientColor=none;html=1;');
     cell.setAttribute('seconds', '');
-    return cell; 
+    return cell;
   }
   WaitState.prototype.create_default_edge = function(src){
     for (var i in src.edges){
@@ -614,7 +617,7 @@ Draw.loadPlugin(function(ui) {
   };
   WaitState.prototype.toJSON = function(cell, cells){
     var data = {};
-    var label = cell.getAttribute("label"); 
+    var label = cell.getAttribute("label");
     data[label] = {
       Type: "Wait"
     };
@@ -643,7 +646,7 @@ Draw.loadPlugin(function(ui) {
       if (edge.source != cell) continue;
       if (awssfUtils.isNext(edge)){
         exist_next_edge = true;
-        Object.assign(data[label], edge.awssf.toJSON(edge, cells)) 
+        Object.assign(data[label], edge.awssf.toJSON(edge, cells))
       }
     }
     if (exist_next_edge == false || data[label].Next == 'End'){
@@ -738,10 +741,10 @@ Draw.loadPlugin(function(ui) {
       res.push("A Succeed state MUST have no outgoing edge")
     }
     return awssfUtils.validateCommonAttributes(cell, res, false);
-  };  
+  };
   SucceedState.prototype.toJSON = function(cell, cells){
     var data = {};
-    var label = cell.getAttribute("label"); 
+    var label = cell.getAttribute("label");
     data[label] = {
       Type: "Succeed"
     }
@@ -763,8 +766,8 @@ Draw.loadPlugin(function(ui) {
     cell.setAttribute('error', '');
     cell.setAttribute('cause', '');
     cell.value.removeAttribute('input_path');
-    cell.value.removeAttribute('output_path');  
-    return cell;  
+    cell.value.removeAttribute('output_path');
+    return cell;
   };
   FailState.prototype.validate = function(cell, res){
     if (!res) res = [];
@@ -782,7 +785,7 @@ Draw.loadPlugin(function(ui) {
   };
   FailState.prototype.toJSON = function(cell, cells){
     var data = {};
-    var label = cell.getAttribute("label"); 
+    var label = cell.getAttribute("label");
     data[label] = {
       Type: "Fail",
       Error: cell.getAttribute("error"),
@@ -811,14 +814,14 @@ Draw.loadPlugin(function(ui) {
     var edge1 = StartAtEdge.prototype.create();
     sp.insertEdge(edge1, true);
     task1.insertEdge(edge1, false);
-    cell.insert(edge1);  
+    cell.insert(edge1);
     var task2 = TaskState.prototype.create();
     task2.setGeometry(new mxGeometry(320, 80, task2.geometry.width, task2.geometry.height));
     cell.insert(task2);
     var edge2 = StartAtEdge.prototype.create();
     sp.insertEdge(edge2, true);
     task2.insertEdge(edge2, false);
-    cell.insert(edge2);  
+    cell.insert(edge2);
     return cell;
   };
   ParallelState.prototype.hiddenAttributes = ['branches'];
@@ -835,7 +838,7 @@ Draw.loadPlugin(function(ui) {
   };
   ParallelState.prototype.toJSON = function(cell, cells){
     var data = {};
-    var label = cell.getAttribute("label"); 
+    var label = cell.getAttribute("label");
     data[label] = {
       Type: "Parallel",
       Branches: []
@@ -848,7 +851,7 @@ Draw.loadPlugin(function(ui) {
       data[label].OutputPath = cell.getAttribute("output_path");
     if (cell.getAttribute("result_path"))
       data[label].ResultPath = cell.getAttribute("result_path");
-    
+
     var startat = [];
     for(var i in cell.children){
       var child = cell.children[i];
@@ -859,7 +862,7 @@ Draw.loadPlugin(function(ui) {
         if (awssfUtils.isStartAt(edge)){
           startat.push(cells[edge.target.id]);
         }
-      }      
+      }
     }
 
     function traceAll(state, res){
@@ -930,12 +933,156 @@ Draw.loadPlugin(function(ui) {
     this.custom = function(){
       this.domNode.appendChild(NextEdge.prototype.createHandlerImage.apply(this, arguments));
       this.domNode.appendChild(CatchEdge.prototype.createHandlerImage.apply(this, arguments));
-      this.domNode.appendChild(RetryEdge.prototype.createHandlerImage.apply(this, arguments));  
+      this.domNode.appendChild(RetryEdge.prototype.createHandlerImage.apply(this, arguments));
     };
     awssfStateHandler.apply(this, arguments);
   }
   ParallelState.prototype.handler = ParallelStateHandler;
   mxUtils.extend(ParallelStateHandler, awssfStateHandler);
+
+  // Skill
+  SkillState = function(){};
+  SkillState.prototype.type = 'Skill';
+  SkillState.prototype.create = function(){
+    var cell = createState(this, SkillState);
+    cell.setStyle('swimlane;whiteSpace=wrap;html=1;dashed=1;gradientColor=none;');
+    cell.setGeometry(new mxGeometry(0, 0, 480, 200));
+    cell.setAttribute('result_path', '');
+    cell.setAttribute('branches', '');
+    var sp = StartPoint.prototype.create(new mxGeometry((cell.geometry.width - 30)/2, 40, 30, 30));
+    cell.insert(sp);
+    var task1 = TaskState.prototype.create();
+    task1.setGeometry(new mxGeometry(80, 80, task1.geometry.width, task1.geometry.height));
+    cell.insert(task1);
+    var edge1 = StartAtEdge.prototype.create();
+    sp.insertEdge(edge1, true);
+    task1.insertEdge(edge1, false);
+    cell.insert(edge1);
+    var task2 = TaskState.prototype.create();
+    task2.setGeometry(new mxGeometry(320, 80, task2.geometry.width, task2.geometry.height));
+    cell.insert(task2);
+    var edge2 = StartAtEdge.prototype.create();
+    sp.insertEdge(edge2, true);
+    task2.insertEdge(edge2, false);
+    cell.insert(edge2);
+    return cell;
+  };
+  SkillState.prototype.hiddenAttributes = ['branches'];
+  SkillState.prototype.create_default_edge = function(src){
+    for (var i in src.edges){
+      var edge = src.edges[i];
+      if ((edge.source == src) && awssfUtils.isNext(edge))
+        return CatchEdge.prototype.create();
+    }
+    return NextEdge.prototype.create();
+  }
+  SkillState.prototype.validate = function(cell, res){
+    return awssfUtils.validateCommonAttributes(cell, res, true);
+  };
+  SkillState.prototype.toJSON = function(cell, cells){
+    var data = {};
+    var label = cell.getAttribute("label");
+    data[label] = {
+      Type: "Skill",
+      Branches: []
+    };
+    if (cell.getAttribute("comment"))
+      data[label].Comment = cell.getAttribute("comment");
+    if (cell.getAttribute("input_path"))
+      data[label].InputPath = cell.getAttribute("input_path");
+    if (cell.getAttribute("output_path"))
+      data[label].OutputPath = cell.getAttribute("output_path");
+    if (cell.getAttribute("result_path"))
+      data[label].ResultPath = cell.getAttribute("result_path");
+
+    var startat = [];
+    for(var i in cell.children){
+      var child = cell.children[i];
+      if (!awssfUtils.isStart(child)) continue;
+      for(var j in child.edges){
+        var edge = child.edges[j];
+        if (edge.target == child) continue;
+        if (awssfUtils.isStartAt(edge)){
+          startat.push(cells[edge.target.id]);
+        }
+      }
+    }
+
+    function traceAll(state, res){
+      res.push(state);
+      for(var j in state.edges){
+        var edge = state.edges[j];
+        if (edge.target == state) continue;
+        traceAll(cells[edge.target.id], res);
+      }
+      return res;
+    }
+    for(var i in startat){
+      var branch = [];
+      var start = startat[i];
+      traceAll(start, branch);
+      var states = {};
+      for(var i in branch){
+        var child = branch[i];
+        if (child.value == null || typeof(child.value) != "object") continue;
+        if (!awssfUtils.isAWSsf(child)) continue;
+        if (awssfUtils.isStart(child) || awssfUtils.isEnd(cell)) continue;
+        if (child.isVertex()){
+          if (awssfUtils.isSkill(child)) continue;
+          if (child.awssf &&  child.awssf.toJSON){
+            Object.assign(states, child.awssf.toJSON(child, cells));
+          }
+        }
+      }
+      data[label].Branches.push({
+        StartAt: start.getAttribute("label"),
+        States: states
+      });
+    }
+    var exist_next_edge = false;
+    if (cell.edges){
+      var sorted_edges = cell.edges.sort(function(a, b){
+        if (Number(a.getAttribute("weight")) > Number(b.getAttribute("weight"))) return -1;
+        if (Number(a.getAttribute("weight")) < Number(b.getAttribute("weight"))) return 1;
+        return 0;
+      });
+      for(var i in sorted_edges){
+        var edge = sorted_edges[i];
+        if (edge.source != cell) continue;
+        if (edge.awssf.toJSON){
+          if (awssfUtils.isRetry(edge)){
+            if (!data[label]["Retry"]) data[label]["Retry"] = [];
+            data[label]["Retry"].push(edge.awssf.toJSON(edge, cells));
+          }
+          else if (awssfUtils.isCatch(edge)){
+            if (!data[label]["Catch"]) data[label]["Catch"] = [];
+            data[label]["Catch"].push(edge.awssf.toJSON(edge, cells));
+          }else if (awssfUtils.isNext(edge)){
+            exist_next_edge = true;
+            Object.assign(data[label], edge.awssf.toJSON(edge, cells));
+          }
+        }
+      }
+    }
+    if (exist_next_edge == false || data[label].Next == 'End'){
+      delete data[label]['Next'];
+      data[label]["End"] = true;
+    }
+    return data;
+
+  };
+  registCodec(SkillState);
+  SkillStateHandler = function(state){
+    this.custom = function(){
+      this.domNode.appendChild(NextEdge.prototype.createHandlerImage.apply(this, arguments));
+      this.domNode.appendChild(CatchEdge.prototype.createHandlerImage.apply(this, arguments));
+      this.domNode.appendChild(RetryEdge.prototype.createHandlerImage.apply(this, arguments));
+    };
+    awssfStateHandler.apply(this, arguments);
+  }
+  SkillState.prototype.handler = SkillStateHandler;
+  mxUtils.extend(SkillStateHandler, awssfStateHandler);
+  // END Skill
 
   function createEdge(awssf, edge, label, style){
     var cell = new mxCell(label, new mxGeometry(0, 0, 60, 60), style);
@@ -946,7 +1093,7 @@ Draw.loadPlugin(function(ui) {
     cell.value = mxUtils.createXmlDocument().createElement('object');
     cell.setAttribute('label', label);
     cell.setAttribute('type', 'awssf' + label);
-    cell.awssf = awssf;  
+    cell.awssf = awssf;
     return cell;
   }
 
@@ -981,7 +1128,7 @@ Draw.loadPlugin(function(ui) {
   NextEdge = function(){};
   NextEdge.prototype.type = 'Next';
   NextEdge.prototype.create = function(label){
-    if (label == null ) label = this.type;  
+    if (label == null ) label = this.type;
     var cell = createEdge(this, NextEdge, label, 'endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1;fontSize=12;');
     return cell;
   };
@@ -1014,7 +1161,7 @@ Draw.loadPlugin(function(ui) {
   RetryEdge.prototype.type = 'Retry';
   RetryEdge.prototype.create = function(label){
     if (label == null ) label = this.type;
-    var cell = createEdge(this, RetryEdge, label, 'edgeStyle=orthogonalEdgeStyle;curved=1;html=1;exitX=0.5;exitY=1;entryX=1;entryY=0.5;startArrow=none;startFill=0;jettySize=auto;orthogonalLoop=1;strokeColor=#000000;strokeWidth=1;fontSize=12;');  
+    var cell = createEdge(this, RetryEdge, label, 'edgeStyle=orthogonalEdgeStyle;curved=1;html=1;exitX=0.5;exitY=1;entryX=1;entryY=0.5;startArrow=none;startFill=0;jettySize=auto;orthogonalLoop=1;strokeColor=#000000;strokeWidth=1;fontSize=12;');
     cell.geometry.setTerminalPoint(new mxPoint(0, cell.geometry.height), true);
     cell.geometry.setTerminalPoint(new mxPoint(cell.geometry.width, 0), false);
     // cell.setAttribute('label', '%error_equals%');
@@ -1071,7 +1218,7 @@ Draw.loadPlugin(function(ui) {
   CatchEdge.prototype.type = 'Catch';
   CatchEdge.prototype.create = function(label){
     if (label == null ) label = this.type;
-    var cell = createEdge(this, CatchEdge, label, 'endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1;fontSize=12;');    
+    var cell = createEdge(this, CatchEdge, label, 'endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1;fontSize=12;');
     // cell.setAttribute('label', '%error_equals%');
     cell.setAttribute('placeholders', 1);
     cell.setAttribute('error_equals', '');
@@ -1091,7 +1238,7 @@ Draw.loadPlugin(function(ui) {
   };
   CatchEdge.prototype.toJSON = function(cell, cells){
     var errors = cell.getAttribute("error_equals");
-    errors = errors ? errors.split(/,\s*/) : [];    
+    errors = errors ? errors.split(/,\s*/) : [];
     if (cell.target != null){
       var data = {
         ErrorEquals: errors,
@@ -1102,7 +1249,7 @@ Draw.loadPlugin(function(ui) {
       return {};
     }
   };
-  CatchEdge.prototype.createHandlerImage = function(){ 
+  CatchEdge.prototype.createHandlerImage = function(){
       var img = awssfUtils.createHandlerImage.call(this, CatchEdge, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAXCAYAAADgKtSgAAACFklEQVRIS7WVT0hUURTGf5NRbsRZBLlImHZKwRREM2Cg48YWoRNE2SIq3BSloxudTToqkUXguBSCDEFsETMtRmqlxSi2CLIg3ESDDEOhlOJmimDi+Ob5/t2Z8RXe1Xv3nfed737nu+d4CoVCgX1anj2Bb2bg+wp8+wB1p+CoH7y+ipRKg+c34XUfrCZBnu2r2gsNYWgbB3lWLDW4AL68qQZVJel4qiWyLSd48gasPKt4ZEdAIALn45ZtK7gwfn7RPbD+x5WE5QQGuOg6cdwpxekuCEbgSCMcOAh/8rCWhvl7kF22EhHtI193a2CAq+Rova8BZ9/B21HIvdfeRYLtHLy4CuufrQn81yE8tbNngI954deWEXgsCJdm4ccXmA3D723jW2gEznbDchzeDDvZD/w0gYuPRRLzah6EYB+kH8DiI3d1EGm8viJzVSHbn8CJy5C6Ax+n3YEXC6vJshBzHu/CJJzshLm77sGbh6AlVoZ5Uz80DcDiQ6csh2rgXBQ2VtWJLcxVmpcraKAHQqPwaQZSt52SWTSXz3a3yJ7ZikuPNX/rVpR7kbjm9PrhWohqvai8zyVCpDlzC2rrwVNV/hJJvNLnwiTus3rdnUdAWPdmFDdUgPatt+gs/7UrFu1nPmzpfi5JzO2glEQihfSSPfVzHURq8KpXk0qVREAFUHq4q0lkZyn3QOanPkNljv7XDHXrFEX8X1YGE8t/bBUwAAAAAElFTkSuQmCC');
     return img;
   };
@@ -1113,11 +1260,11 @@ Draw.loadPlugin(function(ui) {
   ChoiceEdge.prototype.type = 'Choice';
   ChoiceEdge.prototype.create = function(label){
     if (label == null ) label = this.type;
-    var cell = createEdge(this, ChoiceEdge, label, 'endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1;fontSize=12;');     
+    var cell = createEdge(this, ChoiceEdge, label, 'endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1;fontSize=12;');
     // cell.setAttribute('label', '%condition%');
-    cell.setAttribute('placeholders', 1);  
+    cell.setAttribute('placeholders', 1);
     cell.setAttribute('condition', '$.foo == 1');
-    cell.setAttribute('weight', '1');    
+    cell.setAttribute('weight', '1');
     return cell;
   };
   ChoiceEdge.prototype.validate = function(cell, res){
@@ -1151,7 +1298,7 @@ Draw.loadPlugin(function(ui) {
       return {};
     }
   };
-  ChoiceEdge.prototype.createHandlerImage = function(){ 
+  ChoiceEdge.prototype.createHandlerImage = function(){
     var img = awssfUtils.createHandlerImage.call(this, ChoiceEdge, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAXCAYAAADgKtSgAAACWUlEQVRIS7WVXW/SUBjH/12AGZDSDkkwQ40mytCxmC1z6Fx82RUXiiYz8WvMO/0AXrqPoYkandF4t+iWuSXTRMkcu1OUKbFAAWFCy1ZzaoCe9oDUl3PV5pzzO8/L/3keTtM0DV1WsdpAVlaRLSoICi4ERScEj6PbldYex4LX1F08fyNjM7MN8m1ee5x9GAq5ER8TQb47LQs8ldnG49U8E8p65ErMj0jIzeRT8EerObz9UO3JZeOhWNiL+OiA5V4LTiy+tyTZBjcvXJ8KWDzQ4SSuc/NbllCMHtmLWJhHwOdEHwc0djSkpToWkkVk8nXKEBL72cQglQMdzgrH9Iiggwnk5XoJXwp1/f90mMf3Hzu4vyxBKqvUAycPe3A1to9Wy+0Hn1BX24oM+ftxbTKAQkXF3cVvUBrtvYtRARNhL1Y2y3ixXrJYf3PmQBsuV1Rt7skWdejcsA9nhngsvi9hOVW2lYfZy4OtOuA2Plc1cyITp/w4cciDZ2t5vPtoTz3GxHILSVkzu3dp3I8ogb+2Dz8/7MOFqKB7y7R8MsJj6rgPSxvWsLgcnL6XK6tMryjLWTHvltCJY15Mj4hIpit4ulaw5IOKOZGiWS3khlGKr1JlpKVaS4o1ZRcPV3IWrfc7OdyaOUhLsVPZn43wGD/qBe92/LaICJGpc1Khd+YzlNZt6Q8AsfpGImStUAL6b72laeWfdkWj/IweM/s5ecTYDjqFiISC9JKe+nkT8msSFfRQsR4hUAKMjw3Ym0RmK8kM/SoryMoKgqIL+0XX381Qu0rpeYb+KzDh/AQ2ZmDL5ziOTgAAAABJRU5ErkJggg==');
     return img;
   };
@@ -1159,9 +1306,9 @@ Draw.loadPlugin(function(ui) {
   registCodec(ChoiceEdge);
 
   DefaultEdge = function DefaultEdge(){};
-  DefaultEdge.prototype.type = 'Default';  
+  DefaultEdge.prototype.type = 'Default';
   DefaultEdge.prototype.create = function(label){
-    if (label == null ) label = this.type;  
+    if (label == null ) label = this.type;
     var cell = createEdge(this, DefaultEdge, label, 'endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1;fontSize=12;');
     return cell;
   };
@@ -1193,8 +1340,8 @@ Draw.loadPlugin(function(ui) {
   var sb = ui.sidebar;
 
   // Adds custom sidebar entry
-  sb.addPalette('awsStepFunctions', 'AWS Step Functions', true, function(content) {
-    var verticies = [AWSconfig, StartPoint, EndPoint, TaskState, PassState, ChoiceState, WaitState, SucceedState, FailState, ParallelState];
+  sb.addPalette('oliveSkills', 'Olive Skills', true, function(content) {
+    var verticies = [AWSconfig, StartPoint, EndPoint, TaskState, PassState, ChoiceState, WaitState, SucceedState, FailState, ParallelState, SkillState];
     for (var i in verticies){
       var cell = verticies[i].prototype.create();
       content.appendChild(sb.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, cell.label));
@@ -1309,9 +1456,9 @@ Draw.loadPlugin(function(ui) {
 
     div.style.height = '100%'; //'310px';
     div.style.overflow = 'auto';
-    
+
     var value = graph.getModel().getValue(cell);
-    
+
     // Converts the value to an XML node
     if (!mxUtils.isNode(value))
     {
@@ -1329,12 +1476,12 @@ Draw.loadPlugin(function(ui) {
     form.table.insertBefore(colgroupName, form.body);
     var colgroupValue = document.createElement('colgroup');
     form.table.insertBefore(colgroupValue, form.body);
-    
+
     var attrs = value.attributes;
     var names = [];
     var texts = [];
     var count = 0;
-    
+
     var addTextArea = function(index, name, value)
     {
       names[index] = name;
@@ -1423,7 +1570,7 @@ Draw.loadPlugin(function(ui) {
         count++;
       }
     }
-    
+
     div.appendChild(form.table);
 
     this.init = function()
@@ -1437,23 +1584,23 @@ Draw.loadPlugin(function(ui) {
         nameInput.focus();
       }
     };
-    
+
     var cancelBtn = mxUtils.button(mxResources.get('cancel'), function()
     {
       ui.hideDialog.apply(ui, arguments);
     });
     cancelBtn.className = 'geBtn';
-    
+
     var applyBtn = mxUtils.button(mxResources.get('apply'), function()
     {
       try
       {
         ui.hideDialog.apply(ui, arguments);
-        
+
         // Clones and updates the value
         value = value.cloneNode(true);
         var removeLabel = false;
-        
+
         for (var i = 0; i < names.length; i++)
         {
           if (cell.awssf && cell.awssf.applyForm){
@@ -1471,13 +1618,13 @@ Draw.loadPlugin(function(ui) {
             }
           }
         }
-        
+
         // Removes label if placeholder is assigned
         if (removeLabel)
         {
           value.removeAttribute('label');
         }
-        
+
         // Updates the value of the cell (undoable)
         graph.getModel().setValue(cell, value);
       }
@@ -1487,11 +1634,11 @@ Draw.loadPlugin(function(ui) {
       }
     });
     applyBtn.className = 'geBtn gePrimaryBtn';
-    
+
     var buttons = document.createElement('div');
     buttons.style.marginTop = '18px';
     buttons.style.textAlign = 'right';
-    
+
     if (graph.getModel().isVertex(cell) || graph.getModel().isEdge(cell))
     {
       var replace = document.createElement('span');
@@ -1499,13 +1646,13 @@ Draw.loadPlugin(function(ui) {
       var input = document.createElement('input');
       input.setAttribute('type', 'checkbox');
       input.style.marginRight = '6px';
-      
+
       if (value.getAttribute('placeholders') == '1')
       {
         input.setAttribute('checked', 'checked');
         input.defaultChecked = true;
       }
-    
+
       mxEvent.addListener(input, 'click', function()
       {
         if (value.getAttribute('placeholders') == '1')
@@ -1517,10 +1664,10 @@ Draw.loadPlugin(function(ui) {
           value.setAttribute('placeholders', '1');
         }
       });
-      
+
       replace.appendChild(input);
       mxUtils.write(replace, mxResources.get('placeholders'));
-      
+
       if (EditDataDialog.placeholderHelpLink != null)
       {
         var link = document.createElement('a');
@@ -1529,20 +1676,20 @@ Draw.loadPlugin(function(ui) {
         link.setAttribute('target', '_blank');
         link.style.marginLeft = '10px';
         link.style.cursor = 'help';
-        
+
         var icon = document.createElement('img');
         icon.setAttribute('border', '0');
         icon.setAttribute('valign', 'middle');
         icon.style.marginTop = '-4px';
         icon.setAttribute('src', Editor.helpImage);
         link.appendChild(icon);
-        
+
         replace.appendChild(link);
       }
-      
+
       buttons.appendChild(replace);
     }
-    
+
     if (ui.editor && ui.editor.cancelFirst)
     {
       buttons.appendChild(cancelBtn);
@@ -1555,7 +1702,7 @@ Draw.loadPlugin(function(ui) {
     }
 
     div.appendChild(buttons);
-    this.container = div;    
+    this.container = div;
   }
 
 	mxResources.parse('stepFunctions=StepFunctions');
@@ -1571,7 +1718,7 @@ Draw.loadPlugin(function(ui) {
 	ui.actions.addAction('editData...', function()
 	{
 		var cell = ui.editor.graph.getSelectionCell() || ui.editor.graph.getModel().getRoot();
-		
+
 		if (cell != null)
 		{
 			var dlg = new EditDataDialog(ui, cell);
@@ -1638,7 +1785,7 @@ Draw.loadPlugin(function(ui) {
     if (!ui.editor.graph.getModel().cells) return;
     var cell = ui.editor.graph.getModel().cells[0];
     if (cell.value == null){
-      cell.value = mxUtils.createXmlDocument().createElement('object');    
+      cell.value = mxUtils.createXmlDocument().createElement('object');
       if (cell.getAttribute("type") == null) cell.setAttribute("type", "awssfRoot");
       if (cell.getAttribute("name") == null) cell.setAttribute("name", "");
       if (cell.getAttribute("comment") == null) cell.setAttribute("comment", "");
@@ -1718,8 +1865,8 @@ Draw.loadPlugin(function(ui) {
     var sts = new AWS.STS({apiVersion: '2011-06-15'});
     sts.getCallerIdentity({}, function(err, data) {
       if (err) console.log(err, err.stack); // an error occurred
-      else callback(data); 
-    });    
+      else callback(data);
+    });
   }
 
   function getResourceList(callback){
@@ -1763,11 +1910,11 @@ Draw.loadPlugin(function(ui) {
         definition: JSON.stringify(getStepFunctionDefinition()),
         name: ui.editor.graph.getModel().cells[0].getAttribute("name"),
         roleArn: ui.editor.graph.getModel().cells[0].getAttribute("role_arn")
-      }; 
+      };
       stepfunctions.createStateMachine(params, function(err, data) {
         if (data) console.log(err, err.stack); // an error occurred
         else     console.log(data);           // successful response
-      });    
+      });
     });
   }).isEnabled = isSupproted;
 
@@ -1775,13 +1922,13 @@ Draw.loadPlugin(function(ui) {
   {
     if (!setupAWSconfig()) return;
     var stepfunctions = new AWS.StepFunctions({apiVersion: '2016-11-23'});
-  }).isEnabled = isSupproted;  
+  }).isEnabled = isSupproted;
 
-	var menu = ui.menubar.addMenu('StepFunctions', function(menu, parent)
+	var menu = ui.menubar.addMenu('Olive Skills', function(menu, parent)
 	{
 		ui.menus.addMenuItems(menu, ['-', 'awssfValidate', '-', 'awssfExportJSON', 'awssfExportYAML', 'awssfExport' , '-', 'awssfDeploy', 'awssfInvoke']);
 	});
-	
+
 	// Inserts voice menu before help menu
 	var menu = menu.parentNode.insertBefore(menu, menu.previousSibling.previousSibling.previousSibling);
 
