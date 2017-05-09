@@ -161,6 +161,9 @@ Draw.loadPlugin(function(ui) {
         Object.assign(res, tmp);
       }
       return res;
+    },
+    buildParamsLabel: function (label){
+      return label + ' -- Params';
     }
   }
 
@@ -550,9 +553,9 @@ Draw.loadPlugin(function(ui) {
   }
   SkillState.prototype.validate = function(cell, res){
     if (!res) res = [];
-    if (!cell.getAttribute("resource") || !cell.getAttribute("resource").match(/^arn:aws:[^:]*:[^:]+:\d{12}:[^:]+:.+/)){
-      res.push("resource MUST be a URI that uniquely identifies the specific task to execute");
-    }
+    // if (!cell.getAttribute("resource") || !cell.getAttribute("resource").match(/^arn:aws:[^:]*:[^:]+:\d{12}:[^:]+:.+/)){
+    //   res.push("resource MUST be a URI that uniquely identifies the specific task to execute");
+    // }
     if (awssfUtils.validateNumber(cell.getAttribute("timeout_seconds")) == false){
       res.push("timeout_seconds MUST be number");
     }
@@ -572,7 +575,7 @@ Draw.loadPlugin(function(ui) {
     var label = cell.getAttribute("label");
     data[label] = {
       Type: "Task",
-      Resource: cell.getAttribute("resource"),
+      Resource: 'arn:aws:states:us-east-1:288440868010:activity:dev_oliveWorker',
       ResultPath: "$.results['" + cell.getAttribute('label') + "']"
     };
     if (cell.getAttribute("comment"))
@@ -613,7 +616,7 @@ Draw.loadPlugin(function(ui) {
     }
 
     // build Pass to serve as params input to Task
-    var paramsLabel =  label + ' -- Params';
+    var paramsLabel =  awssfUtils.buildParamsLabel(label);
     var params = JSON.parse(cell.getAttribute("skill_params") || "{}");
     data[paramsLabel] = {
       Type: "Pass",
@@ -629,7 +632,8 @@ Draw.loadPlugin(function(ui) {
     this.custom = function(){
       this.domNode.appendChild(NextEdge.prototype.createHandlerImage.apply(this, arguments));
       this.domNode.appendChild(CatchEdge.prototype.createHandlerImage.apply(this, arguments));
-      this.domNode.appendChild(RetryEdge.prototype.createHandlerImage.apply(this, arguments));
+      // TODO: support retries for skills
+      // this.domNode.appendChild(RetryEdge.prototype.createHandlerImage.apply(this, arguments));
     };
     awssfStateHandler.apply(this, arguments);
   }
@@ -1091,8 +1095,13 @@ Draw.loadPlugin(function(ui) {
   };
   StartAtEdge.prototype.toJSON = function(cell, cells){
     if (cell.target != null){
+      var targetCell = cells[cell.target.id];
+      var targetCellLabel = targetCell.getAttribute("label");
       var data = {
-        StartAt: cells[cell.target.id].getAttribute("label")
+        StartAt: targetCellLabel,
+      };
+      if (awssfUtils.isSkill(targetCell)) {
+        data.StartAt = awssfUtils.buildParamsLabel(targetCellLabel);
       }
       return data;
     }else{
@@ -1119,8 +1128,13 @@ Draw.loadPlugin(function(ui) {
   };
   NextEdge.prototype.toJSON = function(cell, cells){
     if (cell.target != null){
+      var targetCell = cells[cell.target.id];
+      var targetCellLabel = targetCell.getAttribute("label");
       var data = {
-        Next: cells[cell.target.id].getAttribute("label")
+        Next: targetCellLabel,
+      };
+      if (awssfUtils.isSkill(targetCell)) {
+        data.Next = awssfUtils.buildParamsLabel(targetCellLabel);
       }
       return data;
     }else{
@@ -1218,9 +1232,14 @@ Draw.loadPlugin(function(ui) {
     var errors = cell.getAttribute("error_equals");
     errors = errors ? errors.split(/,\s*/) : [];
     if (cell.target != null){
+      var targetCell = cells[cell.target.id];
+      var targetCellLabel = targetCell.getAttribute("label");
       var data = {
         ErrorEquals: errors,
-        Next: cells[cell.target.id].getAttribute("label")
+        Next: targetCellLabel,
+      };
+      if (awssfUtils.isSkill(targetCell)) {
+        data.Next = awssfUtils.buildParamsLabel(targetCellLabel);
       }
       return data;
     }else{
@@ -1265,12 +1284,18 @@ Draw.loadPlugin(function(ui) {
   ChoiceEdge.prototype.toJSON = function(cell, cells){
     if (cell.target != null){
       var condition = cell.getAttribute("condition");
-      var data;
+      var data = {};
       if (condition != null){
         var tree = jsep(condition);
         data = awssfUtils.parseJSEPExpr(tree);
       }
-      data.Next = cells[cell.target.id].getAttribute("label");
+
+      var targetCell = cells[cell.target.id];
+      var targetCellLabel = targetCell.getAttribute("label");
+      data.Next = targetCellLabel;
+      if (awssfUtils.isSkill(targetCell)) {
+        data.Next = awssfUtils.buildParamsLabel(targetCellLabel);
+      }
       return data;
     }else{
       return {};
@@ -1299,8 +1324,13 @@ Draw.loadPlugin(function(ui) {
   };
   DefaultEdge.prototype.toJSON = function(cell, cells){
     if (cell.target != null){
+      var targetCell = cells[cell.target.id];
+      var targetCellLabel = targetCell.getAttribute("label");
       var data = {
-        Default: cells[cell.target.id].getAttribute("label")
+        Default: targetCellLabel,
+      };
+      if (awssfUtils.isSkill(targetCell)) {
+        data.Default = awssfUtils.buildParamsLabel(targetCellLabel);
       }
       return data;
     }else{
@@ -1785,11 +1815,18 @@ Draw.loadPlugin(function(ui) {
       if (awssfUtils.isAWSconfig(cell)) continue;
       if (awssfUtils.isParallelChild(cell)) continue;
       if (awssfUtils.isStartAt(cell)){
+        console.log('startAtCell', cell);
+        // if(awssfUtils.isSkill(cell.target)){
+        //   startat = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
+        // }
+        // else {
         startat = model.cells[cell.target.id].getAttribute("label");
+        // }
       };
       if (awssfUtils.isStart(cell) || awssfUtils.isEnd(cell)) continue;
       if (cell.isVertex()){
-        Object.assign(states, cell.awssf.toJSON(cell, model.cells));
+        var newStates = cell.awssf.toJSON(cell, model.cells);
+        Object.assign(states, newStates);
       }
     }
     var root = model.cells[0];
