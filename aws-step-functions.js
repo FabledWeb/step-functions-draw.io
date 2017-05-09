@@ -1816,12 +1816,12 @@ Draw.loadPlugin(function(ui) {
       if (awssfUtils.isParallelChild(cell)) continue;
       if (awssfUtils.isStartAt(cell)){
         console.log('startAtCell', cell);
-        // if(awssfUtils.isSkill(cell.target)){
-        //   startat = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
-        // }
-        // else {
-        startat = model.cells[cell.target.id].getAttribute("label");
-        // }
+        if(awssfUtils.isSkill(cell.target)){
+          startat = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
+        }
+        else {
+          startat = model.cells[cell.target.id].getAttribute("label");
+        }
       };
       if (awssfUtils.isStart(cell) || awssfUtils.isEnd(cell)) continue;
       if (cell.isVertex()){
