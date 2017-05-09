@@ -526,8 +526,9 @@ Draw.loadPlugin(function(ui) {
     cell.setAttribute('label', label);
     cell.setAttribute('type', 'awssf' + label);
     cell.setAttribute('comment', '');
-    cell.setAttribute('_input_path', '');
-    cell.setAttribute('_output_path', '');
+    cell.setAttribute('skill_params', '{"skillname":'+label+'}');
+    cell.setAttribute('timeout_seconds', 60);
+    cell.setAttribute('heartbeat_seconds', '');
     cell.awssf = awssf;
     return cell;
   }
@@ -537,10 +538,6 @@ Draw.loadPlugin(function(ui) {
   SkillState.prototype.type = 'Skill';
   SkillState.prototype.create = function(){
     var cell = createOliveSkill(this, SkillState, 'shape=stencil(rZVNb4MwDIZ/DdcqkI2P48S6Y1Wph51TMCMqTVDC2m2/fiEBdUCyAavExa+xH78BjIdTWZIavAAxcgYPP3tBsBeQQ0EZ5EreC56BlEpWQWluCJEJryZMYhMSWUPWGO1CBCXHCkxGNoKf4ErzputAWQmCNm0Wbz30pO5pL5xmnDHVhHImB5kfedWMUKZq0YdphjaPBvPZxSaqFeEMDYiBerO508LLaow/D3NYihl66aF/YV4XYvx1mO3iQ0PBiIT8mazdUk8WWBLPhB2Ww/r3foWz5cc4gc13ZoPhVCmujw2nR5Kd3gR/Z7l1RJ0R7cfuem2tC2K0PojIJP3qpgw3kR+FcYSihzhIEuy7hnaMhtOCC/hl5oJWldlDroOvSbueJok+feYXuPmNLH5tbfvqSu1TV3XoLteWHYOp3X0/P4n/L0Oj8js70jWT56tV8/vSwjc=);whiteSpace=wrap;gradientColor=none;html=1;');
-    cell.setAttribute('resource', '');
-    cell.setAttribute('timeout_seconds', 60);
-    cell.setAttribute('heartbeat_seconds', '');
-    cell.setAttribute('skill_params', '');
     return cell;
   }
   SkillState.prototype.create_default_edge = function(src){
