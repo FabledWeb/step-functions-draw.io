@@ -526,7 +526,7 @@ Draw.loadPlugin(function(ui) {
     cell.setAttribute('label', label);
     cell.setAttribute('type', 'awssf' + label);
     cell.setAttribute('comment', '');
-    cell.setAttribute('skill_params', '{"skillname":'+label+'}');
+    cell.setAttribute('skill_params', '{"skillname":"'+label+'"}');
     cell.setAttribute('timeout_seconds', 60);
     cell.setAttribute('heartbeat_seconds', '');
     cell.awssf = awssf;
