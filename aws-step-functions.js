@@ -646,7 +646,7 @@ Draw.loadPlugin(function(ui) {
     data[failedLabel] = {
       Type: "Fail",
       "Error": "Plan Failure",
-      "Cause": label
+      "Cause": "skill failed: " + label
     };
     if (!data[label]["Catch"]) data[label]["Catch"] = [];
     data[label]["Catch"].push({
