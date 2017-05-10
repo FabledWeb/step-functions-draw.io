@@ -519,7 +519,7 @@ Draw.loadPlugin(function(ui) {
 
   function createOliveSkill(awssf, state){
     var label = state.prototype.type;
-    var style = 'dashed=0;html=1;shape=mxgraph.aws2.non-service_specific.worker;verticalLabelPosition=middle;verticalAlign=top;fillColor=#651FFF;strokeColor=#311B92';
+    var style = 'dashed=0;html=1;shape=mxgraph.aws2.developer_tools.worker;verticalLabelPosition=middle;verticalAlign=top;fillColor=#651FFF;strokeColor=#311B92';
     var cell = new mxCell(label, new mxGeometry(0, 0, 80, 80), style);
     cell.vertex = true;
     cell.value = mxUtils.createXmlDocument().createElement('object');
