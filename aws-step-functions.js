@@ -526,7 +526,7 @@ Draw.loadPlugin(function(ui) {
     cell.setAttribute('comment', '');
     cell.setAttribute('skillname', '');
     cell.setAttribute('params', '{}');
-    cell.setAttribute('timeout_seconds', 60);
+    cell.setAttribute('timeout_seconds', 600);
     cell.setAttribute('heartbeat_seconds', '');
     cell.awssf = awssf;
     return cell;
@@ -549,9 +549,6 @@ Draw.loadPlugin(function(ui) {
   }
   SkillState.prototype.validate = function(cell, res){
     if (!res) res = [];
-    // if (!cell.getAttribute("resource") || !cell.getAttribute("resource").match(/^arn:aws:[^:]*:[^:]+:\d{12}:[^:]+:.+/)){
-    //   res.push("resource MUST be a URI that uniquely identifies the specific task to execute");
-    // }
     if (awssfUtils.validateNumber(cell.getAttribute("timeout_seconds")) == false){
       res.push("timeout_seconds MUST be number");
     }
@@ -857,7 +854,7 @@ Draw.loadPlugin(function(ui) {
   SucceedState = function(){};
   SucceedState.prototype.type = 'Succeed';
   SucceedState.prototype.create = function(){
-    var cell = createState(this, SucceedState, 'shape=mxgraph.flowchart.terminator;html=1;whiteSpace=wrap;gradientColor=none;');
+    var cell = createState(this, SucceedState, 'shape=mxgraph.flowchart.terminator;html=1;whiteSpace=wrap;gradientColor=none;fillColor=#0DCC91;strokeColor=#ffffff;fontColor=#ffffff;');
     return cell;
   };
   SucceedState.prototype.validate = function(cell, res){
@@ -888,7 +885,7 @@ Draw.loadPlugin(function(ui) {
   FailState = function(){};
   FailState.prototype.type = 'Fail';
   FailState.prototype.create = function(){
-    var cell = createState(this, FailState, 'shape=mxgraph.flowchart.terminator;html=1;whiteSpace=wrap;gradientColor=none;');
+    var cell = createState(this, FailState, 'shape=mxgraph.flowchart.terminator;html=1;whiteSpace=wrap;gradientColor=none;fillColor=#f50057;fontColor=#ffffff;strokeColor=#ffffff');
     cell.setAttribute('error', '');
     cell.setAttribute('cause', '');
     cell.value.removeAttribute('input_path');
