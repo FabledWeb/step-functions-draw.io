@@ -19,6 +19,9 @@ Draw.loadPlugin(function(ui) {
     isEnd: function(cell){
       return (cell && cell.value && (cell.value.getAttribute("type") == "awssfEnd"));
     },
+    isEndEdge: function(cell){
+      return (cell && cell.isEdge() && cell.target && cell.target.getAttribute("type") == "awssfEnd"));
+    },
     isParallelChild: function(cell){
       return (cell && cell.parent && cell.parent.value && (cell.parent.value.getAttribute("type") == "awssfParallel"));
     },
@@ -341,6 +344,14 @@ Draw.loadPlugin(function(ui) {
   AWSconfig.prototype.handler = awssfStateHandler;
   registCodec(AWSconfig);
 
+  function setIsEndNode(exist_next_edge, nodeData) {
+    if (exist_next_edge == false || nodeData.Next == 'End'){
+      nodeData['Next'] = 'cleanup';
+      console.log('nodeData', nodeData);
+    }
+    return nodeData;
+  }
+
   function createState(awssf, state, style){
     var label = state.prototype.type;
     if (!style) style = 'rounded=1;whiteSpace=wrap;html=1;gradientColor=none;dashed=1';
@@ -401,10 +412,7 @@ Draw.loadPlugin(function(ui) {
         Object.assign(data[label], edge.awssf.toJSON(edge, cells))
       }
     }
-    if (exist_next_edge == false || data[label].Next == 'End'){
-      delete data[label]['Next'];
-      data[label]["End"] = true;
-    }
+    data[label] = setIsEndNode(exist_next_edge, data[label]);
     return data;
   };
   registCodec(PassState);
@@ -497,10 +505,7 @@ Draw.loadPlugin(function(ui) {
         }
       }
     }
-    if (exist_next_edge == false || data[label].Next == 'End'){
-      delete data[label]['Next'];
-      data[label]["End"] = true;
-    }
+    data[label] = setIsEndNode(exist_next_edge, data[label]);
     return data;
   };
   registCodec(TaskState);
@@ -606,10 +611,7 @@ Draw.loadPlugin(function(ui) {
         }
       }
     }
-    if (exist_next_edge == false || data[label].Next == 'End'){
-      delete data[label]['Next'];
-      data[label]["End"] = true;
-    }
+    data[label] = setIsEndNode(exist_next_edge, data[label]);
 
     // build Pass to serve as params input to Task
     var paramsLabel =  awssfUtils.buildParamsLabel(label);
@@ -772,10 +774,7 @@ Draw.loadPlugin(function(ui) {
         Object.assign(data[label], edge.awssf.toJSON(edge, cells))
       }
     }
-    if (exist_next_edge == false || data[label].Next == 'End'){
-      delete data[label]['Next'];
-      data[label]["End"] = true;
-    }
+    data[label] = setIsEndNode(exist_next_edge, data[label]);
     return data;
   };
   WaitState.prototype.buildForm = function(form, attrName, attrValue){
@@ -1044,10 +1043,7 @@ Draw.loadPlugin(function(ui) {
         }
       }
     }
-    if (exist_next_edge == false || data[label].Next == 'End'){
-      delete data[label]['Next'];
-      data[label]["End"] = true;
-    }
+    data[label] = setIsEndNode(exist_next_edge, data[label]);
     return data;
 
   };
@@ -1832,7 +1828,19 @@ Draw.loadPlugin(function(ui) {
         };
         Object.assign(states, newStates);
       }
-      if (awssfUtils.isStart(cell) || awssfUtils.isEnd(cell)) continue;
+      if (awssfUtils.isStart(cell)) continue;
+      if (awssfUtils.isEnd(cell)){
+        var newStates = {
+          cleanup: {
+            Type: "Task",
+            Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
+            InputPath: "$.bootstrap",
+            ResultPath: "$.cleanup",
+            TimeoutSeconds: 60,
+            End: true
+          }
+        };
+      }
       if (cell.isVertex()){
         var newStates = cell.awssf.toJSON(cell, model.cells);
         Object.assign(states, newStates);
