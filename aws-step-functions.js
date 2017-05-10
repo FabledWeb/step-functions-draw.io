@@ -519,7 +519,7 @@ Draw.loadPlugin(function(ui) {
 
   function createOliveSkill(awssf, state){
     var label = state.prototype.type;
-    var style = 'dashed=0;html=1;shape=mxgraph.aws2.flowchart.predefined_process;whiteSpace=wrap;gradientColor=none;html=1;fillColor=#B388FF;strokeColor=#311B92';
+    var style = 'dashed=0;html=1;shape=mxgraph.flowchart.predefined_process;whiteSpace=wrap;gradientColor=none;html=1;fillColor=#B388FF;strokeColor=#311B92';
     var cell = new mxCell(label, new mxGeometry(0, 0, 60, 98), style);
     cell.vertex = true;
     cell.value = mxUtils.createXmlDocument().createElement('object');
