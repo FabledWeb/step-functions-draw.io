@@ -929,14 +929,14 @@ Draw.loadPlugin(function(ui) {
     cell.setAttribute('branches', '');
     var sp = StartPoint.prototype.create(new mxGeometry((cell.geometry.width - 30)/2, 40, 30, 30));
     cell.insert(sp);
-    var task1 = TaskState.prototype.create();
+    var task1 = SkillState.prototype.create();
     task1.setGeometry(new mxGeometry(80, 80, task1.geometry.width, task1.geometry.height));
     cell.insert(task1);
     var edge1 = StartAtEdge.prototype.create();
     sp.insertEdge(edge1, true);
     task1.insertEdge(edge1, false);
     cell.insert(edge1);
-    var task2 = TaskState.prototype.create();
+    var task2 = SkillState.prototype.create();
     task2.setGeometry(new mxGeometry(320, 80, task2.geometry.width, task2.geometry.height));
     cell.insert(task2);
     var edge2 = StartAtEdge.prototype.create();
