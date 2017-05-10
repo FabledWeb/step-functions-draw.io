@@ -1111,6 +1111,7 @@ Draw.loadPlugin(function(ui) {
   StartAtEdge.prototype.create = function(label){
     if (label == null ) label = this.type;
     var cell = createEdge(this, StartAtEdge, label, 'endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1;fontSize=12;');
+    cell.setAttribute('schedule', '0 * * * *');
     return cell;
   };
   StartAtEdge.prototype.validate = function(cell, res){
@@ -1742,9 +1743,10 @@ Draw.loadPlugin(function(ui) {
 
 	mxResources.parse('stepFunctions=StepFunctions');
 	mxResources.parse('awssfValidate=Validate');
-	mxResources.parse('awssfExportJSON=Export JSON');
-	mxResources.parse('awssfExportYAML=Export YAML');
-	mxResources.parse('awssfExport=Export');
+  mxResources.parse('awssfExportPlanJSON=Export: Olive Plan JSON');
+	mxResources.parse('awssfExportJSON=Export: Amazon State Machine JSON');
+	mxResources.parse('awssfExportYAML=Export: Amazon State Machine YAML');
+	mxResources.parse('awssfExport=Export: Diagram');
 	mxResources.parse('awssfLambda=Lambda');
   mxResources.parse('awssfDeploy=Deploy(CORS not supported)');
   mxResources.parse('awssfInvoke=Invoke(CORS not supported)');
@@ -1836,6 +1838,8 @@ Draw.loadPlugin(function(ui) {
     var states = {};
     var model = ui.editor.graph.getModel();
     var startat = null;
+    var schedule = '';
+    var planParams = {};
     for(var i in model.cells){
       var cell = model.cells[i];
       if (!awssfUtils.isAWSsf(cell)) continue;
@@ -1861,6 +1865,8 @@ Draw.loadPlugin(function(ui) {
           }
         };
         Object.assign(states, newStates);
+
+        schedule = cell.getAttribute('schedule');
         continue;
       }
       if (awssfUtils.isStart(cell)) continue;
@@ -1894,18 +1900,30 @@ Draw.loadPlugin(function(ui) {
       data.TimeoutSeconds = Number(root.getAttribute("timeout_seconds"));
     if (root.getAttribute("version"))
       data.Version = root.getAttribute("version");
-    return data;
+
+    var plan = {
+      schedule: schedule,
+      params: planParams,
+      stateMachine: data
+    };
+    return plan;
   }
 
   ui.actions.addAction('awssfExportJSON', function()
   {
-    var data = getStepFunctionDefinition();
+    var data = getStepFunctionDefinition().stateMachine;
     mxUtils.popup(JSON.stringify(data, null, "  "));
+  });
+
+  ui.actions.addAction('awssfExportPlanJSON', function()
+  {
+    var plan = getStepFunctionDefinition();
+    mxUtils.popup(JSON.stringify(plan, null, "  "));
   });
 
   ui.actions.addAction('awssfExportYAML', function()
   {
-    var data = getStepFunctionDefinition();
+    var data = getStepFunctionDefinition().stateMachine;
     mxUtils.popup(jsyaml.dump(data));
   });
 
@@ -1995,7 +2013,7 @@ Draw.loadPlugin(function(ui) {
 
 	var menu = ui.menubar.addMenu('Olive Skills', function(menu, parent)
 	{
-		ui.menus.addMenuItems(menu, ['-', 'awssfValidate', '-', 'awssfExportJSON', 'awssfExportYAML', 'awssfExport' , '-', 'awssfDeploy', 'awssfInvoke']);
+		ui.menus.addMenuItems(menu, ['-', 'awssfValidate', '-', 'awssfExportPlanJSON', '-', 'awssfExportJSON', 'awssfExportYAML', 'awssfExport' , '-', 'awssfDeploy', 'awssfInvoke']);
 	});
 
 	// Inserts voice menu before help menu
