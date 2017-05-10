@@ -625,6 +625,7 @@ Draw.loadPlugin(function(ui) {
     var paramsLabel =  awssfUtils.buildParamsLabel(label);
     var params = JSON.parse(cell.getAttribute("params") || "{}");
     params.skillname = cell.getAttribute("skillname");
+    params.stepname = label;
     data[paramsLabel] = {
       Type: "Pass",
       Result: params,
