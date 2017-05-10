@@ -304,8 +304,6 @@ Draw.loadPlugin(function(ui) {
     }
   };
 
-
-
   StartPoint = function(){};
   StartPoint.prototype.type = 'Start';
   StartPoint.prototype.create = function(geometry){
@@ -1812,14 +1810,28 @@ Draw.loadPlugin(function(ui) {
       if (awssfUtils.isAWSconfig(cell)) continue;
       if (awssfUtils.isParallelChild(cell)) continue;
       if (awssfUtils.isStartAt(cell)){
-        console.log('startAtCell', cell);
+        var label = 'bootstrap';
+        startat = label;
+
+        var next = '';
         if(awssfUtils.isSkill(cell.target)){
-          startat = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
+          next = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
         }
         else {
-          startat = model.cells[cell.target.id].getAttribute("label");
+          next = model.cells[cell.target.id].getAttribute("label");
         }
-      };
+
+        var newStates = {
+          label: {
+            Type: "Task",
+            Resource: 'arn:aws:lambda:us-east-1:288440868010:function:dev_olivePlanBootstrap',
+            ResultPath: "$.bootstrap",
+            TimeoutSeconds: 60,
+            Next: next
+          }
+        };
+        Object.assign(states, newStates);
+      }
       if (awssfUtils.isStart(cell) || awssfUtils.isEnd(cell)) continue;
       if (cell.isVertex()){
         var newStates = cell.awssf.toJSON(cell, model.cells);
