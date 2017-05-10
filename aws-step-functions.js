@@ -1827,6 +1827,7 @@ Draw.loadPlugin(function(ui) {
           }
         };
         Object.assign(states, newStates);
+        continue;
       }
       if (awssfUtils.isStart(cell)) continue;
       if (awssfUtils.isEnd(cell)){
@@ -1840,6 +1841,8 @@ Draw.loadPlugin(function(ui) {
             End: true
           }
         };
+        Object.assign(states, newStates);
+        continue;
       }
       if (cell.isVertex()){
         var newStates = cell.awssf.toJSON(cell, model.cells);
