@@ -354,7 +354,7 @@ Draw.loadPlugin(function(ui) {
   registCodec(AWSconfig);
 
   function createPlanConfig(awsf){
-    var cell = new mxCell('PlanConfig', new mxGeometry(0, 0, 70, 70), 'dashed=0;html=1;shape=mxgraph.bpmn.timer_start;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;fontColor=#ffffff;fillColor=#651fff');
+    var cell = new mxCell('PlanConfig', new mxGeometry(0, 0, 70, 70), 'dashed=0;html=1;shape=mxgraph.bpmn.service_task;strokeColor=#ffffff;verticalLabelPosition=bottom;verticalAlign=top;fontColor=#000000;fillColor=#651fff');
     cell.vertex = true;
     cell.value = mxUtils.createXmlDocument().createElement('object');
     cell.setAttribute('label', 'Plan Config');
