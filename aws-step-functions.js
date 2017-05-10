@@ -20,7 +20,7 @@ Draw.loadPlugin(function(ui) {
       return (cell && cell.value && (cell.value.getAttribute("type") == "awssfEnd"));
     },
     isEndEdge: function(cell){
-      return (cell && cell.isEdge() && cell.target && cell.target.getAttribute("type") == "awssfEnd"));
+      return (cell && cell.isEdge() && cell.target && cell.target.getAttribute("type") == "awssfEnd");
     },
     isParallelChild: function(cell){
       return (cell && cell.parent && cell.parent.value && (cell.parent.value.getAttribute("type") == "awssfParallel"));
