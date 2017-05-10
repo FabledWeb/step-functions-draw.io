@@ -167,6 +167,12 @@ Draw.loadPlugin(function(ui) {
     },
     buildParamsLabel: function (label){
       return label + ' -- Params';
+    },
+    buildErrorCleanupLabel: function (label){
+      return label + ' -- Error Cleanup';
+    },
+    buildFailedLabel: function (label){
+      return label + ' -- Failure';
     }
   }
 
@@ -587,6 +593,7 @@ Draw.loadPlugin(function(ui) {
       data[label].HeartbeatSeconds = Number(cell.getAttribute("heartbeat_seconds"));
 
     var exist_next_edge = false;
+    var exist_catch_edge = false;
     if (cell.edges){
       var sorted_edges = cell.edges.sort(function(a, b){
         if (Number(a.getAttribute("weight")) > Number(b.getAttribute("weight"))) return -1;
@@ -604,6 +611,7 @@ Draw.loadPlugin(function(ui) {
           else if (awssfUtils.isCatch(edge)){
             if (!data[label]["Catch"]) data[label]["Catch"] = [];
             data[label]["Catch"].push(edge.awssf.toJSON(edge, cells));
+            exist_catch_edge = true;
           }else if (awssfUtils.isNext(edge)){
             exist_next_edge = true;
             Object.assign(data[label], edge.awssf.toJSON(edge, cells))
@@ -623,6 +631,31 @@ Draw.loadPlugin(function(ui) {
       ResultPath: '$.params',
       Next: label
     };
+
+    // build Catch for this Task
+    var errorCleanupLabel =  awssfUtils.buildErrorCleanupLabel(label);
+    var failedLabel =  awssfUtils.buildFailedLabel(label);
+    data[errorCleanupLabel] = {
+      Type: "Task",
+      Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
+      InputPath: "$['bootstrap','error']",
+      ResultPath: "$['error cleanup']",
+      TimeoutSeconds: 60,
+      Next: failedLabel
+    };
+    data[failedLabel] = {
+      Type: "Fail",
+      "Error": "Plan Failure",
+      "Cause": label
+    };
+    if (!data[label]["Catch"]) data[label]["Catch"] = [];
+    data[label]["Catch"].push({
+      "ErrorEquals": [
+        "States.ALL"
+      ],
+      "Next": "error cleanup",
+      "ResultPath": "$.error"
+    });
 
     return data;
   };
