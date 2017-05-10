@@ -524,7 +524,8 @@ Draw.loadPlugin(function(ui) {
     cell.setAttribute('label', label);
     cell.setAttribute('type', 'awssf' + label);
     cell.setAttribute('comment', '');
-    cell.setAttribute('skill_params', '{"skillname":"'+label+'"}');
+    cell.setAttribute('skillname', '');
+    cell.setAttribute('params', '{}');
     cell.setAttribute('timeout_seconds', 60);
     cell.setAttribute('heartbeat_seconds', '');
     cell.awssf = awssf;
@@ -560,6 +561,9 @@ Draw.loadPlugin(function(ui) {
       if (Number(cell.getAttribute("heartbeat_seconds")) >= Number(cell.getAttribute("timeout_seconds"))){
         res.push("heartbeat_seconds MUST be smaller than timeout_seconds")
       }
+    }
+    if (!cell.getAttribute("skillname")) {
+      res.push("skillname MUST be filled in");
     }
     return awssfUtils.validateCommonAttributes(cell, res, true);
   };
@@ -612,7 +616,8 @@ Draw.loadPlugin(function(ui) {
 
     // build Pass to serve as params input to Task
     var paramsLabel =  awssfUtils.buildParamsLabel(label);
-    var params = JSON.parse(cell.getAttribute("skill_params") || "{}");
+    var params = JSON.parse(cell.getAttribute("params") || "{}");
+    params.skillname = cell.getAttribute("skillname");
     data[paramsLabel] = {
       Type: "Pass",
       Result: params,
@@ -1344,7 +1349,7 @@ Draw.loadPlugin(function(ui) {
 
   // Adds custom sidebar entry
   sb.addPalette('oliveSkills', 'Olive Skills', true, function(content) {
-    var verticies = [AWSconfig, StartPoint, EndPoint, TaskState, PassState, ChoiceState, WaitState, SucceedState, FailState, ParallelState, SkillState];
+    var verticies = [AWSconfig, StartPoint, EndPoint, SkillState, ParallelState, PassState, ChoiceState, WaitState, SucceedState, FailState, TaskState];
     for (var i in verticies){
       var cell = verticies[i].prototype.create();
       content.appendChild(sb.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, cell.label));
