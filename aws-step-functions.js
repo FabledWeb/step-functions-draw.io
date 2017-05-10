@@ -1398,7 +1398,7 @@ Draw.loadPlugin(function(ui) {
 
   // Adds custom sidebar entry
   sb.addPalette('oliveSkills', 'Olive Skills', true, function(content) {
-    var verticies = [AWSconfig, PlanConfig StartPoint, EndPoint, SkillState, ParallelState, PassState, ChoiceState, WaitState, SucceedState, FailState, TaskState];
+    var verticies = [AWSconfig, PlanConfig, StartPoint, EndPoint, SkillState, ParallelState, PassState, ChoiceState, WaitState, SucceedState, FailState, TaskState];
     for (var i in verticies){
       var cell = verticies[i].prototype.create();
       content.appendChild(sb.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, cell.label));
