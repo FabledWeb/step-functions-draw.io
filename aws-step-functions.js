@@ -1810,9 +1810,7 @@ Draw.loadPlugin(function(ui) {
       if (awssfUtils.isAWSconfig(cell)) continue;
       if (awssfUtils.isParallelChild(cell)) continue;
       if (awssfUtils.isStartAt(cell)){
-        var label = 'bootstrap';
-        startat = label;
-
+        startat = 'bootstrap';
         var next = '';
         if(awssfUtils.isSkill(cell.target)){
           next = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
@@ -1822,7 +1820,7 @@ Draw.loadPlugin(function(ui) {
         }
 
         var newStates = {
-          label: {
+          bootstrap: {
             Type: "Task",
             Resource: 'arn:aws:lambda:us-east-1:288440868010:function:dev_olivePlanBootstrap',
             ResultPath: "$.bootstrap",
