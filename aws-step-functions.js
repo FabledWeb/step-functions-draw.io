@@ -653,7 +653,7 @@ Draw.loadPlugin(function(ui) {
       "ErrorEquals": [
         "States.ALL"
       ],
-      "Next": "error cleanup",
+      "Next": errorCleanupLabel,
       "ResultPath": "$.error"
     });
 
