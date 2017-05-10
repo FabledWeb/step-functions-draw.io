@@ -13,6 +13,9 @@ Draw.loadPlugin(function(ui) {
     isAWSconfig: function(cell){
       return (cell && cell.value && (cell.value.getAttribute("type") == "awssfAWSconfig"));
     },
+    isPlanConfig: function(cell){
+      return (cell && cell.value && (cell.value.getAttribute("type") == "awssfPlanConfig"));
+    },
     isStart: function(cell){
       return (cell && cell.value && (cell.value.getAttribute("type") == "awssfStart"));
     },
@@ -349,6 +352,25 @@ Draw.loadPlugin(function(ui) {
   }
   AWSconfig.prototype.handler = awssfStateHandler;
   registCodec(AWSconfig);
+
+  function createPlanConfig(awsf){
+    var cell = new mxCell('PlanConfig', new mxGeometry(0, 0, 70, 70), 'dashed=0;html=1;shape=mxgraph.bpmn.timer_start;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;fontColor=#ffffff;fillColor=#651fff');
+    cell.vertex = true;
+    cell.value = mxUtils.createXmlDocument().createElement('object');
+    cell.setAttribute('label', 'Plan Config');
+    cell.setAttribute('type', 'awssfPlanConfig');
+    cell.setAttribute('schedule', '0 * * * *');
+    cell.setAttribute('params', '{}');
+    cell.awssf = awsf;
+    return cell;
+  }
+
+  PlanConfig = function(){};
+  PlanConfig.prototype.create = function(){
+    return createPlanConfig(this);
+  }
+  PlanConfig.prototype.handler = awssfStateHandler;
+  registCodec(PlanConfig);
 
   function setIsEndNode(exist_next_edge, nodeData) {
     if (exist_next_edge == false || nodeData.Next == 'End'){
@@ -1111,7 +1133,6 @@ Draw.loadPlugin(function(ui) {
   StartAtEdge.prototype.create = function(label){
     if (label == null ) label = this.type;
     var cell = createEdge(this, StartAtEdge, label, 'endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1;fontSize=12;');
-    cell.setAttribute('schedule', '0 * * * *');
     return cell;
   };
   StartAtEdge.prototype.validate = function(cell, res){
@@ -1377,7 +1398,7 @@ Draw.loadPlugin(function(ui) {
 
   // Adds custom sidebar entry
   sb.addPalette('oliveSkills', 'Olive Skills', true, function(content) {
-    var verticies = [AWSconfig, StartPoint, EndPoint, SkillState, ParallelState, PassState, ChoiceState, WaitState, SucceedState, FailState, TaskState];
+    var verticies = [AWSconfig, PlanConfig StartPoint, EndPoint, SkillState, ParallelState, PassState, ChoiceState, WaitState, SucceedState, FailState, TaskState];
     for (var i in verticies){
       var cell = verticies[i].prototype.create();
       content.appendChild(sb.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, cell.label));
@@ -1845,6 +1866,11 @@ Draw.loadPlugin(function(ui) {
       if (!awssfUtils.isAWSsf(cell)) continue;
       if (awssfUtils.isAWSconfig(cell)) continue;
       if (awssfUtils.isParallelChild(cell)) continue;
+      if (awssfUtils.isPlanConfig(cell)){
+        schedule = cell.getAttribute('schedule');
+        planParams = JSON.parse(cell.getAttribute('params') || "{}");
+        continue;
+      }
       if (awssfUtils.isStartAt(cell)){
         startat = 'bootstrap';
         var next = '';
