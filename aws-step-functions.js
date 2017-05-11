@@ -678,6 +678,8 @@ Draw.loadPlugin(function(ui) {
     var errorCleanupLabel =  awssfUtils.buildErrorCleanupLabel(label);
     var failedLabel =  awssfUtils.buildFailedLabel(label);
     var errorNotificationLabel =  awssfUtils.buildErrorNotificationLabel(label);
+    var errorNotificationParamsLabel =  awssfUtils.buildParamsLabel(errorNotificationLabel);
+
     data[errorCleanupLabel] = {
       Type: "Task",
       Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
@@ -687,7 +689,6 @@ Draw.loadPlugin(function(ui) {
       Next: errorNotificationParamsLabel
     };
     // build Pass to serve as params input to Task
-    var errorNotificationParamsLabel =  awssfUtils.buildParamsLabel(errorNotificationLabel);
     data[errorNotificationParamsLabel] = {
       Type: "Pass",
       Result: {
