@@ -174,6 +174,9 @@ Draw.loadPlugin(function(ui) {
     buildErrorCleanupLabel: function (label){
       return label + ' -- Error Cleanup';
     },
+    buildErrorNotificationLabel: function (label){
+      return label + ' -- Error Notification';
+    },
     buildFailedLabel: function (label){
       return label + ' -- Failure';
     }
@@ -674,11 +677,33 @@ Draw.loadPlugin(function(ui) {
     // build Catch for this Task
     var errorCleanupLabel =  awssfUtils.buildErrorCleanupLabel(label);
     var failedLabel =  awssfUtils.buildFailedLabel(label);
+    var errorNotificationLabel =  awssfUtils.buildErrorNotificationLabel(label);
     data[errorCleanupLabel] = {
       Type: "Task",
       Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
       InputPath: "$['bootstrap','error']",
       ResultPath: "$['error cleanup']",
+      TimeoutSeconds: 60,
+      Next: errorNotificationParamsLabel
+    };
+    // build Pass to serve as params input to Task
+    var errorNotificationParamsLabel =  awssfUtils.buildParamsLabel(errorNotificationLabel);
+    data[errorNotificationParamsLabel] = {
+      Type: "Pass",
+      Result: {
+        "channel":"",
+        "color":"#f50057",
+        "text":"skill failed: " + label,
+        "title":"Plan Failure"
+      },
+      ResultPath: '$.params',
+      Next: errorNotificationLabel
+    };
+    data[errorNotificationLabel] = {
+      Type: "Task",
+      Resource: 'arn:aws:lambda:us-east-1:288440868010:function:slack-notification',
+      InputPath: "$['error']",
+      ResultPath: "$['error notification']",
       TimeoutSeconds: 60,
       Next: failedLabel
     };
