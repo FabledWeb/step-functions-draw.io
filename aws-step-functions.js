@@ -1577,9 +1577,9 @@ Draw.loadPlugin(function(ui) {
       var nodeValue = attrs[i].nodeValue;
       if (cell.awssf.hiddenAttributes && cell.awssf.hiddenAttributes.indexOf(nodeName) >= 0) continue;
       if (nodeName == 'type') {
-        var span = document.createElement('span');
-        mxUtils.write(span, nodeValue);
-        form.addField('type:', span);
+        // var span = document.createElement('span');
+        // mxUtils.write(span, nodeValue);
+        // form.addField('type:', span);
       }
       else if ((typeof(AWS) === "object") && (nodeName == 'resource')){
         var input = addText(count, nodeName, nodeValue);
