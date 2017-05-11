@@ -2053,7 +2053,7 @@ Draw.loadPlugin(function(ui) {
 
 	var menu = ui.menubar.addMenu('Olive Skills', function(menu, parent)
 	{
-		ui.menus.addMenuItems(menu, ['-', 'awssfValidate', '-', 'awssfExportPlanJSON', '-', 'awssfExportJSON', 'awssfExportYAML', 'awssfExport' , '-', 'awssfDeploy', 'awssfInvoke']);
+		ui.menus.addMenuItems(menu, ['-', 'awssfValidate', '-', 'awssfExportPlanJSON', '-', 'awssfExportJSON', 'awssfExportYAML', '-', 'awssfExport' , '-', 'awssfDeploy', 'awssfInvoke']);
 	});
 
 	// Inserts voice menu before help menu
