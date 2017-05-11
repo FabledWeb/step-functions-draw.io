@@ -360,7 +360,7 @@ Draw.loadPlugin(function(ui) {
     cell.setAttribute('label', 'Plan Config');
     cell.setAttribute('type', 'awssfPlanConfig');
     cell.setAttribute('schedule', '0 * * * *');
-    cell.setAttribute('params', '{}');
+    cell.setAttribute('globalParams', '{}');
     cell.awssf = awsf;
     return cell;
   }
@@ -565,6 +565,18 @@ Draw.loadPlugin(function(ui) {
     return cell;
   }
 
+  function getGlobalParams() {
+    var codec = new mxCodec();
+    var model = ui.editor.graph.getModel();
+    var node = codec.encode(model);
+    var found = mxUtils.findNode(node, "type", "awssfPlanConfig");
+    if (found == null){
+      return {};
+    }
+    var planConfig = codec.decode(found);
+    return JSON.parse(planConfig.getAttribute('globalParams') || "{}");
+  }
+
   // SkillState
   SkillState = function(){};
   SkillState.prototype.type = 'Skill';
@@ -645,7 +657,11 @@ Draw.loadPlugin(function(ui) {
 
     // build Pass to serve as params input to Task
     var paramsLabel =  awssfUtils.buildParamsLabel(label);
-    var params = JSON.parse(cell.getAttribute("params") || "{}");
+    var localParams = JSON.parse(cell.getAttribute("params") || "{}");
+    var globalParams = getGlobalParams();
+    var params = {};
+    Object.assign(params, globalParams);
+    Object.assign(params, localParams);
     params.skillname = cell.getAttribute("skillname");
     params.stepname = label;
     data[paramsLabel] = {
@@ -1868,7 +1884,7 @@ Draw.loadPlugin(function(ui) {
       if (awssfUtils.isParallelChild(cell)) continue;
       if (awssfUtils.isPlanConfig(cell)){
         schedule = cell.getAttribute('schedule');
-        planParams = JSON.parse(cell.getAttribute('params') || "{}");
+        planParams = JSON.parse(cell.getAttribute('globalParams') || "{}");
         continue;
       }
       if (awssfUtils.isStartAt(cell)){
