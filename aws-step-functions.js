@@ -1907,8 +1907,6 @@ Draw.loadPlugin(function(ui) {
           }
         };
         Object.assign(states, newStates);
-
-        schedule = cell.getAttribute('schedule');
         continue;
       }
       if (awssfUtils.isStart(cell)) continue;
