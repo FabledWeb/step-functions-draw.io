@@ -704,7 +704,6 @@ Draw.loadPlugin(function(ui) {
     data[errorNotificationLabel] = {
       Type: "Task",
       Resource: 'arn:aws:lambda:us-east-1:288440868010:function:slack-notification',
-      InputPath: "$['error']",
       ResultPath: "$['error notification']",
       TimeoutSeconds: 60,
       Next: failedLabel
