@@ -2085,7 +2085,7 @@ Draw.loadPlugin(function(ui) {
         list = data.Contents.map(function(item) {
           var itemName = item.Key.replace(/\.json$/,'').replace(prefix, '');
           return itemName;
-        }).filter(function() {
+        }).filter(function(itemName) {
           return itemName != '';
         });
       }
