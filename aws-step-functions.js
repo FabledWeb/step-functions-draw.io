@@ -1635,7 +1635,7 @@ Draw.loadPlugin(function(ui) {
             var opt = document.createElement('option');
             opt.onselect = function() {
               getSkillDefinition(resources[j], function(skillDef){
-                document.getElementById('nodeName + '-skilldetails'').innerHTML = '<pre>'+JSON.stringify(skillDef,null,2)+'</pre>';
+                document.getElementById(nodeName + '-skilldetails').innerHTML = '<pre>'+JSON.stringify(skillDef,null,2)+'</pre>';
               });
             };
             opt.value = resources[j];
