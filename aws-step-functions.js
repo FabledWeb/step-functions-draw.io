@@ -6,6 +6,7 @@ mxscript("https://sdk.amazonaws.com/js/aws-sdk-2.9.0.min.js");
 //mxscript("https://localhost:8000/js/jsep.min.js");
 
 Draw.loadPlugin(function(ui) {
+  console.log('ui=',ui);
   awssfUtils = {
     isAWSsf: function(cell){
       return (cell && (cell.awssf != null)) && (cell.value && cell.value.getAttribute("type") && cell.value.getAttribute("type").indexOf("awssf") == 0);
@@ -2050,7 +2051,7 @@ Draw.loadPlugin(function(ui) {
 
   function isSupproted(){
     var sdk_supported = (typeof(AWS) == "object") && (typeof(AWS.StepFunctions) == "object");
-    var cors_supported = false;
+    var cors_supported = true;
     return sdk_supported && cors_supported;
   }
 
