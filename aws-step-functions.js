@@ -1630,13 +1630,18 @@ Draw.loadPlugin(function(ui) {
           // console.log('changed',e);
           var options = document.getElementById('skills-datalist').options;
           var val = e.target.value;
+          var matchedSkill = false;
           for (var i=0;i<options.length;i++){
-             if (options[i].value === val) {
+            if (options[i].value === val){
               getSkillDefinition(val, function(skillDef){
                 document.getElementById('skillname-skilldetails').value = JSON.stringify(skillDef,null,2);
               });
+              matchedSkill = true;
               break;
-             }
+            }
+          }
+          if (!matchedSkill) {
+            document.getElementById('skillname-skilldetails').value = '';
           }
         });
         var datalist = document.createElement('datalist');
@@ -1645,9 +1650,9 @@ Draw.loadPlugin(function(ui) {
           var skillDefDom = document.createElement('textarea');
           skillDefDom.id = 'skillname-skilldetails';
           skillDefDom.readOnly = true;
-          skillDefDom.placeholder = "choose skillname to see skill definition";
+          skillDefDom.placeholder = "choose a skillname to see its skill definition";
           skillDefDom.style.height = '70px';
-          skillDefDom.style.width = '100%';
+          skillDefDom.style.width = '96%';
           skillDefDom.style.paddingRight = '20px';
           getSkillList(function(resources){
             for (var j in resources){
