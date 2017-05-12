@@ -1626,10 +1626,10 @@ Draw.loadPlugin(function(ui) {
         var input = addText(count, nodeName, nodeValue);
         count++;
         input.setAttribute("list", "skills-datalist");
-        input.addEventListener('input', function (x) {
-          console.log('changed',x);
+        input.addEventListener('input', function (e) {
+          // console.log('changed',e);
           var options = document.getElementById('skills-datalist').options;
-          var val = input.value;
+          var val = e.target.value;
           for (var i=0;i<options.length;i++){
              if (options[i].value === val) {
               getSkillDefinition(val, function(skillDef){
