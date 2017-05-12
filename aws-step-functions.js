@@ -1641,7 +1641,7 @@ Draw.loadPlugin(function(ui) {
         });
         var datalist = document.createElement('datalist');
         datalist.id = "skills-datalist";
-        var skillDefDom = addTextarea('skill definition' + ':', '', 4);
+        var skillDefDom = addTextarea('skill definition','');
         skillDefDom.id = 'skillname-skilldetails';
         count++;
         getSkillList(function(resources){
