@@ -1628,14 +1628,23 @@ Draw.loadPlugin(function(ui) {
         input.setAttribute("list", "resources");
         var datalist = document.createElement('datalist');
         datalist.id = "resources";
+        var skillDefDom = document.createElement('div');
+        skillDefDom.id = nodeName + '-skilldetails';
         getSkillList(function(resources){
           for (var j in resources){
             var opt = document.createElement('option');
+            opt.onselect = function() {
+              getSkillDefinition(resources[j], function(skillDef){
+                document.getElementById('nodeName + '-skilldetails'').innerHTML = '<pre>'+JSON.stringify(skillDef,null,2)+'</pre>';
+              });
+            };
             opt.value = resources[j];
             datalist.appendChild(opt);
           };
         });
+
         div.appendChild(datalist);
+        div.appendChild(skillDefDom);
       }
       else if (nodeName == 'label' && (awssfUtils.isChoice(cell) || awssfUtils.isRetry(cell) || awssfUtils.isCatch(cell))){
         var input = addText(count, nodeName, nodeValue);
@@ -2061,6 +2070,32 @@ Draw.loadPlugin(function(ui) {
         }
       });
     // });
+  }
+
+  function getSkillDefinition(skillName, callback){
+    if (!setupAWSconfig()) return;
+    var def = {};
+    var s3 = new AWS.S3({apiVersion: '2006-03-01'});
+    var prefix = 'skill_definitions/';
+
+    var params = {
+      Bucket: 'crosschx-olive-assets-dev', /* required */
+      Key: prefix + skillName + '.json',
+      // Delimiter: 'STRING_VALUE',
+      // EncodingType: url,
+      // Marker: 'STRING_VALUE',
+      // MaxKeys: 0,
+      // RequestPayer: requester
+    };
+    s3.getObject(params, function(err, data) {
+      var obj = {};
+      if (err) console.log(err, err.stack); // an error occurred
+      else{
+        console.log();
+        obj = JSON.parse(data.Body)
+      }
+      callback(obj);
+    });
   }
 
   function getSkillList(callback){
