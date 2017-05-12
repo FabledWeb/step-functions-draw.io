@@ -1625,19 +1625,27 @@ Draw.loadPlugin(function(ui) {
       else if ((typeof(AWS) === "object") && (nodeName == 'skillname')){
         var input = addText(count, nodeName, nodeValue);
         count++;
-        input.setAttribute("list", "resources");
+        input.setAttribute("list", "skills-datalist");
+        input.addEventListener('input', function () {
+          console.log('changed');
+          var options = document.getElementById('skills').options;
+          var val = input.value;
+          for (var i=0;i<options.length;i++){
+             if (options[i].value === val) {
+              getSkillDefinition(val, function(skillDef){
+                document.getElementById(nodeName + '-skilldetails').innerHTML = '<pre>'+JSON.stringify(skillDef,null,2)+'</pre>';
+              });
+              break;
+             }
+          }
+        });
         var datalist = document.createElement('datalist');
-        datalist.id = "resources";
+        datalist.id = "skills-datalist";
         var skillDefDom = document.createElement('div');
         skillDefDom.id = nodeName + '-skilldetails';
         getSkillList(function(resources){
           for (var j in resources){
             var opt = document.createElement('option');
-            opt.onselect = function() {
-              getSkillDefinition(resources[j], function(skillDef){
-                document.getElementById(nodeName + '-skilldetails').innerHTML = '<pre>'+JSON.stringify(skillDef,null,2)+'</pre>';
-              });
-            };
             opt.value = resources[j];
             datalist.appendChild(opt);
           };
