@@ -1622,6 +1622,21 @@ Draw.loadPlugin(function(ui) {
         });
         div.appendChild(datalist);
       }
+      else if ((typeof(AWS) === "object") && (nodeName == 'skillname')){
+        var input = addText(count, nodeName, nodeValue);
+        count++;
+        input.setAttribute("list", "resources");
+        var datalist = document.createElement('datalist');
+        datalist.id = "resources";
+        getSkillList(function(resources){
+          for (var j in resources){
+            var opt = document.createElement('option');
+            opt.value = resources[j];
+            datalist.appendChild(opt);
+          };
+        });
+        div.appendChild(datalist);
+      }
       else if (nodeName == 'label' && (awssfUtils.isChoice(cell) || awssfUtils.isRetry(cell) || awssfUtils.isCatch(cell))){
         var input = addText(count, nodeName, nodeValue);
         count++;
@@ -2048,6 +2063,27 @@ Draw.loadPlugin(function(ui) {
     // });
   }
 
+  function getSkillList(callback){
+    if (!setupAWSconfig()) return;
+    var list = [];
+    var s3 = new AWS.S3({apiVersion: '2015-03-31'});
+
+    var params = {
+      Bucket: 'crosschx-olive-assets-dev', /* required */
+      // Delimiter: 'STRING_VALUE',
+      // EncodingType: url,
+      // Marker: 'STRING_VALUE',
+      // MaxKeys: 0,
+      // Prefix: 'STRING_VALUE',
+      // RequestPayer: requester
+    };
+    s3.listObjects(params, function(err, data) {
+      if (err) console.log(err, err.stack); // an error occurred
+      else     console.log(data);           // successful response
+      callback(list);
+    });
+  }
+
   function isSupported(){
     var sdk_supported = (typeof(AWS) == "object") && (typeof(AWS.StepFunctions) == "object");
     var cors_supported = true;
@@ -2069,13 +2105,13 @@ Draw.loadPlugin(function(ui) {
         else     console.log(data);           // successful response
       });
     });
-  });
+  }).isSupported;
 
   ui.actions.addAction('awssfInvoke', function()
   {
     if (!setupAWSconfig()) return;
     var stepfunctions = new AWS.StepFunctions({apiVersion: '2016-11-23'});
-  });
+  }).isSupported;
 
 	var menu = ui.menubar.addMenu('Olive Skills', function(menu, parent)
 	{
