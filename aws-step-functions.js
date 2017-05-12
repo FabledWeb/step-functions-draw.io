@@ -1653,7 +1653,6 @@ Draw.loadPlugin(function(ui) {
           skillDefDom.placeholder = "choose a skillname to see its skill definition";
           skillDefDom.style.height = '70px';
           skillDefDom.style.width = '96%';
-          skillDefDom.style.paddingRight = '20px';
           getSkillList(function(resources){
             for (var j in resources){
               var opt = document.createElement('option');
