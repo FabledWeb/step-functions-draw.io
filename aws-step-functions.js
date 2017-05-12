@@ -1645,7 +1645,6 @@ Draw.loadPlugin(function(ui) {
         skillDefDom.id = 'skillname-skilldetails';
         skillDefDom.readOnly = true;
         skillDefDom.style.heigth = '70px';
-        count++;
         getSkillList(function(resources){
           for (var j in resources){
             var opt = document.createElement('option');
