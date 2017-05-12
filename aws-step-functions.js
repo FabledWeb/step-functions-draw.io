@@ -2048,7 +2048,7 @@ Draw.loadPlugin(function(ui) {
     // });
   }
 
-  function isSupproted(){
+  function isSupported(){
     var sdk_supported = (typeof(AWS) == "object") && (typeof(AWS.StepFunctions) == "object");
     var cors_supported = true;
     return sdk_supported && cors_supported;
@@ -2069,13 +2069,13 @@ Draw.loadPlugin(function(ui) {
         else     console.log(data);           // successful response
       });
     });
-  }).isEnabled = isSupproted;
+  }).isEnabled = isSupported();
 
   ui.actions.addAction('awssfInvoke', function()
   {
     if (!setupAWSconfig()) return;
     var stepfunctions = new AWS.StepFunctions({apiVersion: '2016-11-23'});
-  }).isEnabled = isSupproted;
+  }).isEnabled = isSupported();
 
 	var menu = ui.menubar.addMenu('Olive Skills', function(menu, parent)
 	{
