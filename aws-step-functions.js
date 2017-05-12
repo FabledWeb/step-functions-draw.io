@@ -2069,13 +2069,13 @@ Draw.loadPlugin(function(ui) {
         else     console.log(data);           // successful response
       });
     });
-  }).isEnabled = isSupported();
+  });
 
   ui.actions.addAction('awssfInvoke', function()
   {
     if (!setupAWSconfig()) return;
     var stepfunctions = new AWS.StepFunctions({apiVersion: '2016-11-23'});
-  }).isEnabled = isSupported();
+  });
 
 	var menu = ui.menubar.addMenu('Olive Skills', function(menu, parent)
 	{
