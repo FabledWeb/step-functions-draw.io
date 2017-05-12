@@ -1633,7 +1633,7 @@ Draw.loadPlugin(function(ui) {
           for (var i=0;i<options.length;i++){
              if (options[i].value === val) {
               getSkillDefinition(val, function(skillDef){
-                document.getElementById(nodeName + '-skilldetails').innerHTML = '<pre>'+JSON.stringify(skillDef,null,2)+'</pre>';
+                document.getElementById('skillname-skilldetails').value = JSON.stringify(skillDef,null,2);
               });
               break;
              }
@@ -1641,8 +1641,9 @@ Draw.loadPlugin(function(ui) {
         });
         var datalist = document.createElement('datalist');
         datalist.id = "skills-datalist";
-        var skillDefDom = document.createElement('div');
-        skillDefDom.id = nodeName + '-skilldetails';
+        var skillDefDom = addTextarea('skill definition' + ':', '', 4);
+        skillDefDom.id = 'skillname-skilldetails';
+        count++;
         getSkillList(function(resources){
           for (var j in resources){
             var opt = document.createElement('option');
@@ -1652,7 +1653,7 @@ Draw.loadPlugin(function(ui) {
         });
 
         div.appendChild(datalist);
-        div.appendChild(skillDefDom);
+        // div.appendChild(skillDefDom);
       }
       else if (nodeName == 'label' && (awssfUtils.isChoice(cell) || awssfUtils.isRetry(cell) || awssfUtils.isCatch(cell))){
         var input = addText(count, nodeName, nodeValue);
