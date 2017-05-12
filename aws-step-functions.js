@@ -1641,8 +1641,10 @@ Draw.loadPlugin(function(ui) {
         });
         var datalist = document.createElement('datalist');
         datalist.id = "skills-datalist";
-        var skillDefDom = addTextArea('skill definition','');
+        var skillDefDom = document.createElement('textarea');
         skillDefDom.id = 'skillname-skilldetails';
+        skillDefDom.readOnly = true;
+        skillDefDom.style.heigth = '70px';
         count++;
         getSkillList(function(resources){
           for (var j in resources){
@@ -1653,7 +1655,7 @@ Draw.loadPlugin(function(ui) {
         });
 
         div.appendChild(datalist);
-        // div.appendChild(skillDefDom);
+        div.appendChild(skillDefDom);
       }
       else if (nodeName == 'label' && (awssfUtils.isChoice(cell) || awssfUtils.isRetry(cell) || awssfUtils.isCatch(cell))){
         var input = addText(count, nodeName, nodeValue);
