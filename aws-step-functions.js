@@ -1626,9 +1626,9 @@ Draw.loadPlugin(function(ui) {
         var input = addText(count, nodeName, nodeValue);
         count++;
         input.setAttribute("list", "skills-datalist");
-        input.addEventListener('input', function () {
-          console.log('changed');
-          var options = document.getElementById('skills').options;
+        input.addEventListener('input', function (x) {
+          console.log('changed',x);
+          var options = document.getElementById('skills-datalist').options;
           var val = input.value;
           for (var i=0;i<options.length;i++){
              if (options[i].value === val) {
