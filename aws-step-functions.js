@@ -2082,7 +2082,7 @@ Draw.loadPlugin(function(ui) {
       if (err) console.log(err, err.stack); // an error occurred
       else{
         console.log(data);
-        list = data.contents.map(function(item) {
+        list = data.Contents.map(function(item) {
           var itemName = item.Key.replace(/\.json$/,'').replace(prefix, '');
           return itemName;
         }).filter(function() {
