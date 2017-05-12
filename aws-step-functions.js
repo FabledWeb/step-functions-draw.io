@@ -1631,7 +1631,7 @@ Draw.loadPlugin(function(ui) {
         getSkillList(function(resources){
           for (var j in resources){
             var opt = document.createElement('option');
-            opt.value = resources[j].Key.replace(/\.json$/,'');
+            opt.value = resources[j];
             datalist.appendChild(opt);
           };
         });
@@ -2067,10 +2067,11 @@ Draw.loadPlugin(function(ui) {
     if (!setupAWSconfig()) return;
     var list = [];
     var s3 = new AWS.S3({apiVersion: '2015-03-31'});
+    var prefix = 'skill_definitions/';
 
     var params = {
       Bucket: 'crosschx-olive-assets-dev', /* required */
-      Prefix: 'skill_definitions/',
+      Prefix: prefix,
       // Delimiter: 'STRING_VALUE',
       // EncodingType: url,
       // Marker: 'STRING_VALUE',
@@ -2081,7 +2082,12 @@ Draw.loadPlugin(function(ui) {
       if (err) console.log(err, err.stack); // an error occurred
       else{
         console.log(data);
-        list = data.contents;
+        list = data.contents.map(function(item) {
+          var itemName = item.Key.replace(/\.json$/,'').replace(prefix, '');
+          return itemName;
+        }).filter(function() {
+          return itemName != '';
+        });
       }
       callback(list);
     });
