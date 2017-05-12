@@ -1641,20 +1641,24 @@ Draw.loadPlugin(function(ui) {
         });
         var datalist = document.createElement('datalist');
         datalist.id = "skills-datalist";
-        var skillDefDom = document.createElement('textarea');
-        skillDefDom.id = 'skillname-skilldetails';
-        skillDefDom.readOnly = true;
-        skillDefDom.style.heigth = '70px';
-        getSkillList(function(resources){
-          for (var j in resources){
-            var opt = document.createElement('option');
-            opt.value = resources[j];
-            datalist.appendChild(opt);
-          };
-        });
-
+        if (setupAWSconfig()){
+          var skillDefDom = document.createElement('textarea');
+          skillDefDom.id = 'skillname-skilldetails';
+          skillDefDom.readOnly = true;
+          skillDefDom.placeholder = "choose skillname to see skill definition";
+          skillDefDom.style.height = '70px';
+          skillDefDom.style.width = '100%';
+          skillDefDom.style.paddingRight: '20px';
+          getSkillList(function(resources){
+            for (var j in resources){
+              var opt = document.createElement('option');
+              opt.value = resources[j];
+              datalist.appendChild(opt);
+            };
+          });
+          div.appendChild(skillDefDom);
+        }
         div.appendChild(datalist);
-        div.appendChild(skillDefDom);
       }
       else if (nodeName == 'label' && (awssfUtils.isChoice(cell) || awssfUtils.isRetry(cell) || awssfUtils.isCatch(cell))){
         var input = addText(count, nodeName, nodeValue);
