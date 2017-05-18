@@ -1970,7 +1970,7 @@ Draw.loadPlugin(function(ui) {
         continue;
       }
       if (awssfUtils.isStartAt(cell)){
-        startat = 'bootstrap';
+        startat = 'bootstrap -- Params';
         var next = '';
         if(awssfUtils.isSkill(cell.target)){
           next = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
@@ -1980,12 +1980,59 @@ Draw.loadPlugin(function(ui) {
         }
 
         var newStates = {
-          bootstrap: {
+          "bootstrap -- Storage Files": {
+            Type: "Pass",
+            Result: [],
+            ResultPath: "$.storageFiles",
+            Next: "bootstrap"
+          },
+          "bootstrap -- Params": {
+            Type: "Pass",
+            Result: {
+              "skillname": "bootstrap",
+              "stepname": "bootstrap"
+            },
+            ResultPath: "$.params",
+            Next: "bootstrap -- Storage Files"
+          },
+          "bootstrap": {
             Type: "Task",
-            Resource: 'arn:aws:lambda:us-east-1:288440868010:function:dev_olivePlanBootstrap',
+            Resource: "arn:aws:states:us-east-1:288440868010:activity:dev_oliveWorker",
             ResultPath: "$.bootstrap",
             TimeoutSeconds: 60,
             Next: next
+            Catch: [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "bootstrap -- Error Notification -- Params",
+                "ResultPath": "$.error"
+              }
+            ]
+          },
+          "bootstrap -- Error Notification -- Params": {
+            Type: "Pass",
+            Result: {
+              channel: "",
+              color: "#f50057",
+              text: "bootstrap failed",
+              title: "Plan Failure"
+            },
+            ResultPath: "$.params",
+            Next: "bootstrap -- Error Notification"
+          },
+          "bootstrap -- Error Notification": {
+            Type: "Task",
+            Resource: "arn:aws:lambda:us-east-1:288440868010:function:slack-notification",
+            ResultPath: "$['error notification']",
+            TimeoutSeconds: 60,
+            Next: "bootstrap -- Failure"
+          },
+          "bootstrap -- Failure": {
+            Type: "Fail",
+            Error: "Plan Failure",
+            Cause: "bootstrap failed"
           }
         };
         Object.assign(states, newStates);
