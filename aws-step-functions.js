@@ -172,6 +172,9 @@ Draw.loadPlugin(function(ui) {
     buildParamsLabel: function (label){
       return label + ' -- Params';
     },
+    buildStorageFilesLabel: function (label){
+      return label + ' -- Storage Files';
+    },
     buildErrorCleanupLabel: function (label){
       return label + ' -- Error Cleanup';
     },
@@ -563,6 +566,7 @@ Draw.loadPlugin(function(ui) {
     cell.setAttribute('comment', '');
     cell.setAttribute('skillname', '');
     cell.setAttribute('params', '{}');
+    cell.setAttribute('storageFiles', '[]');
     cell.setAttribute('timeout_seconds', 600);
     cell.setAttribute('heartbeat_seconds', '');
     cell.awssf = awssf;
@@ -659,6 +663,16 @@ Draw.loadPlugin(function(ui) {
     }
     data[label] = setIsEndNode(exist_next_edge, data[label]);
 
+    // build Pass to serve as storageFiles input to Task
+    var storageFilesLabel =  awssfUtils.buildStorageFilesLabel(label);
+    var storageFiles = JSON.parse(cell.getAttribute("storageFiles") || "[]");
+    data[paramsLabel] = {
+      Type: "Pass",
+      Result: storageFiles,
+      ResultPath: '$.storageFiles',
+      Next: label
+    };
+
     // build Pass to serve as params input to Task
     var paramsLabel =  awssfUtils.buildParamsLabel(label);
     var localParams = JSON.parse(cell.getAttribute("params") || "{}");
@@ -672,7 +686,7 @@ Draw.loadPlugin(function(ui) {
       Type: "Pass",
       Result: params,
       ResultPath: '$.params',
-      Next: label
+      Next: storageFilesLabel
     };
 
     // build Catch for this Task
