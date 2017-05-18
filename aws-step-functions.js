@@ -666,7 +666,7 @@ Draw.loadPlugin(function(ui) {
     // build Pass to serve as storageFiles input to Task
     var storageFilesLabel =  awssfUtils.buildStorageFilesLabel(label);
     var storageFiles = JSON.parse(cell.getAttribute("storageFiles") || "[]");
-    data[paramsLabel] = {
+    data[storageFilesLabel] = {
       Type: "Pass",
       Result: storageFiles,
       ResultPath: '$.storageFiles',
