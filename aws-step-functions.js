@@ -2000,7 +2000,7 @@ Draw.loadPlugin(function(ui) {
             Resource: "arn:aws:states:us-east-1:288440868010:activity:dev_oliveWorker",
             ResultPath: "$.bootstrap",
             TimeoutSeconds: 60,
-            Next: next
+            Next: next,
             Catch: [
               {
                 "ErrorEquals": [
