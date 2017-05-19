@@ -615,127 +615,30 @@ Draw.loadPlugin(function(ui) {
     if (!cell.getAttribute("skillname")) {
       res.push("skillname MUST be filled in");
     }
+
+    if (!cell.getAttribute("label").indexOf(' ') > -1) {
+      res.push("label / state name cannot contain spaces for a skill... sorry");
+    }
     return awssfUtils.validateCommonAttributes(cell, res, true);
   };
   SkillState.prototype.toJSON = function(cell, cells){
-    var data = {};
-
-    // build Task
-    var label = cell.getAttribute("label");
-    data[label] = {
-      Type: "Task",
-      Resource: 'arn:aws:states:us-east-1:288440868010:activity:dev_oliveWorker',
-      ResultPath: "$.results['" + cell.getAttribute('label') + "']"
-    };
-    if (cell.getAttribute("comment"))
-      data[label].Comment = cell.getAttribute("comment");
-    if (cell.getAttribute("timeout_seconds"))
-      data[label].TimeoutSeconds = Number(cell.getAttribute("timeout_seconds"));
-    if (cell.getAttribute("heartbeat_seconds"))
-      data[label].HeartbeatSeconds = Number(cell.getAttribute("heartbeat_seconds"));
-
-    var exist_next_edge = false;
-    var exist_catch_edge = false;
-    if (cell.edges){
-      var sorted_edges = cell.edges.sort(function(a, b){
-        if (Number(a.getAttribute("weight")) > Number(b.getAttribute("weight"))) return -1;
-        if (Number(a.getAttribute("weight")) < Number(b.getAttribute("weight"))) return 1;
-        return 0;
-      });
-      for(var i in sorted_edges){
-        var edge = sorted_edges[i];
-        if (edge.source != cell) continue;
-        if (edge.awssf && edge.awssf.toJSON){
-          if (awssfUtils.isRetry(edge)){
-            if (!data[label]["Retry"]) data[label]["Retry"] = [];
-            data[label]["Retry"].push(edge.awssf.toJSON(edge, cells));
-          }
-          else if (awssfUtils.isCatch(edge)){
-            if (!data[label]["Catch"]) data[label]["Catch"] = [];
-            data[label]["Catch"].push(edge.awssf.toJSON(edge, cells));
-            exist_catch_edge = true;
-          }else if (awssfUtils.isNext(edge)){
-            exist_next_edge = true;
-            Object.assign(data[label], edge.awssf.toJSON(edge, cells))
-          }
-        }
-      }
-    }
-    data[label] = setIsEndNode(exist_next_edge, data[label]);
-
-    // build Pass to serve as storageFiles input to Task
-    var storageFilesLabel =  awssfUtils.buildStorageFilesLabel(label);
-    var storageFiles = JSON.parse(cell.getAttribute("storageFiles") || "[]");
-    data[storageFilesLabel] = {
-      Type: "Pass",
-      Result: storageFiles,
-      ResultPath: '$.storageFiles',
-      Next: label
-    };
-
-    // build Pass to serve as params input to Task
-    var paramsLabel =  awssfUtils.buildParamsLabel(label);
+    // build params
     var localParams = JSON.parse(cell.getAttribute("params") || "{}");
     var globalParams = getGlobalParams();
     var params = {};
     Object.assign(params, globalParams);
     Object.assign(params, localParams);
-    params.skillname = cell.getAttribute("skillname");
-    params.stepname = label;
-    data[paramsLabel] = {
-      Type: "Pass",
-      Result: params,
-      ResultPath: '$.params',
-      Next: storageFilesLabel
-    };
 
-    // build Catch for this Task
-    var errorCleanupLabel =  awssfUtils.buildErrorCleanupLabel(label);
-    var failedLabel =  awssfUtils.buildFailedLabel(label);
-    var errorNotificationLabel =  awssfUtils.buildErrorNotificationLabel(label);
-    var errorNotificationParamsLabel =  awssfUtils.buildParamsLabel(errorNotificationLabel);
-
-    data[errorCleanupLabel] = {
-      Type: "Task",
-      Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
-      InputPath: "$['bootstrap','error']",
-      ResultPath: "$['error cleanup']",
-      TimeoutSeconds: 60,
-      Next: errorNotificationParamsLabel
+    var skillDetails = {
+      label: cell.getAttribute("label"),
+      timeout_seconds: cell.getAttribute("timeout_seconds"),
+      comment: cell.getAttribute("comment"),
+      heartbeat_seconds: cell.getAttribute("heartbeat_seconds"),
+      storageFiles: JSON.parse(cell.getAttribute("storageFiles") || "[]"),
+      params: params,
+      skillname: cell.getAttribute("skillname"),
     };
-    // build Pass to serve as params input to Task
-    data[errorNotificationParamsLabel] = {
-      Type: "Pass",
-      Result: {
-        "channel":"",
-        "color":"#f50057",
-        "text":"skill failed: " + label,
-        "title":"Plan Failure"
-      },
-      ResultPath: '$.params',
-      Next: errorNotificationLabel
-    };
-    data[errorNotificationLabel] = {
-      Type: "Task",
-      Resource: 'arn:aws:lambda:us-east-1:288440868010:function:slack-notification',
-      ResultPath: "$['error notification']",
-      TimeoutSeconds: 60,
-      Next: failedLabel
-    };
-    data[failedLabel] = {
-      Type: "Fail",
-      "Error": "Plan Failure",
-      "Cause": "skill failed: " + label
-    };
-    if (!data[label]["Catch"]) data[label]["Catch"] = [];
-    data[label]["Catch"].push({
-      "ErrorEquals": [
-        "States.ALL"
-      ],
-      "Next": errorCleanupLabel,
-      "ResultPath": "$.error"
-    });
-
+    var data = buildSkill(skillDetails, cell, cells);
     return data;
   };
   registCodec(SkillState);
@@ -1953,6 +1856,131 @@ Draw.loadPlugin(function(ui) {
     return;
   }
 
+  function buildSkill(skill, cell, cells){
+    var data = {};
+    var label = skill.label;
+
+    // build Task
+    data[label] = {
+      Type: "Task",
+      Resource: 'arn:aws:states:us-east-1:288440868010:activity:dev_oliveWorker',
+      ResultPath: skill.overrideResultPath || "$.results['" + label + "']"
+    };
+    if (skill.comment)
+      data[label].Comment = skill.comment;
+    if (skill.timeout_seconds)
+      data[label].TimeoutSeconds = Number(skill.timeout_seconds);
+    if (skill.heartbeat_seconds)
+      data[label].HeartbeatSeconds = Number(skill.heartbeat_seconds);
+
+    var exist_next_edge = !!skill.next || false;
+    var exist_catch_edge = false;
+    if (cell && cell.edges && cells){
+      var sorted_edges = cell.edges.sort(function(a, b){
+        if (Number(a.getAttribute("weight")) > Number(b.getAttribute("weight"))) return -1;
+        if (Number(a.getAttribute("weight")) < Number(b.getAttribute("weight"))) return 1;
+        return 0;
+      });
+      for(var i in sorted_edges){
+        var edge = sorted_edges[i];
+        if (edge.source != cell) continue;
+        if (edge.awssf && edge.awssf.toJSON){
+          if (awssfUtils.isRetry(edge)){
+            if (!data[label]["Retry"]) data[label]["Retry"] = [];
+            data[label]["Retry"].push(edge.awssf.toJSON(edge, cells));
+          }
+          else if (awssfUtils.isCatch(edge)){
+            if (!data[label]["Catch"]) data[label]["Catch"] = [];
+            data[label]["Catch"].push(edge.awssf.toJSON(edge, cells));
+            exist_catch_edge = true;
+          }else if (awssfUtils.isNext(edge)){
+            exist_next_edge = true;
+            Object.assign(data[label], edge.awssf.toJSON(edge, cells))
+          }
+        }
+      }
+    }
+
+    // check and set isEndNode
+    data[label] = setIsEndNode(exist_next_edge, data[label]);
+
+    // build Pass to serve as storageFiles input to Task
+    var storageFilesLabel =  awssfUtils.buildStorageFilesLabel(label);
+    var storageFiles = skill.storageFiles;
+    data[storageFilesLabel] = {
+      Type: "Pass",
+      Result: storageFiles,
+      ResultPath: '$.storageFiles',
+      Next: label
+    };
+
+    // build Pass to serve as params input to Task
+    var params = { // automatic params
+      skillname: skill.skillname,
+      stepname: label,
+    };
+    Object.assign(params, skill.params); // add in params from skill
+    var paramsLabel = awssfUtils.buildParamsLabel(label);
+    data[paramsLabel] = {
+      Type: "Pass",
+      Result: params,
+      ResultPath: '$.params',
+      Next: storageFilesLabel
+    };
+
+    // build Catch for this Task
+    var errorCleanupLabel =  awssfUtils.buildErrorCleanupLabel(label);
+    var failedLabel =  awssfUtils.buildFailedLabel(label);
+    var errorNotificationLabel =  awssfUtils.buildErrorNotificationLabel(label);
+    var errorNotificationParamsLabel =  awssfUtils.buildParamsLabel(errorNotificationLabel);
+
+    if(!skill.noCleanup) {
+      data[errorCleanupLabel] = {
+        Type: "Task",
+        Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
+        InputPath: "$['bootstrap','error']",
+        ResultPath: "$['error cleanup']",
+        TimeoutSeconds: 60,
+        Next: errorNotificationParamsLabel
+      };
+    }
+    // build Pass to serve as params input to Error Notification Task
+    data[errorNotificationParamsLabel] = {
+      Type: "Pass",
+      Result: {
+        "channel":"",
+        "color":"#f50057",
+        "text":"skill failed: " + label,
+        "title":"Plan Failure"
+      },
+      ResultPath: '$.params',
+      Next: errorNotificationLabel
+    };
+    data[errorNotificationLabel] = {
+      Type: "Task",
+      Resource: 'arn:aws:lambda:us-east-1:288440868010:function:slack-notification',
+      ResultPath: "$['error notification']",
+      TimeoutSeconds: 60,
+      Next: failedLabel
+    };
+    data[failedLabel] = {
+      Type: "Fail",
+      "Error": "Plan Failure",
+      "Cause": "skill failed: " + label
+    };
+    if (!data[label]["Catch"]) data[label]["Catch"] = [];
+    data[label]["Catch"].push({
+      "ErrorEquals": [
+        "States.ALL"
+      ],
+      // start the error flow at cleanup if it exists, otherwise start at error notification params
+      "Next": data[errorCleanupLabel] ? errorCleanupLabel : errorNotificationParamsLabel,
+      "ResultPath": "$.error"
+    });
+
+    return data;
+  }
+
   function getStepFunctionDefinition(){
     var states = {};
     var model = ui.editor.graph.getModel();
@@ -1971,71 +1999,27 @@ Draw.loadPlugin(function(ui) {
       }
       if (awssfUtils.isStartAt(cell)){
         startat = 'bootstrap -- Params';
-        var next = '';
-        if(awssfUtils.isSkill(cell.target)){
-          next = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
-        }
-        else {
-          next = model.cells[cell.target.id].getAttribute("label");
-        }
+        // var next = '';
+        // if(awssfUtils.isSkill(cell.target)){
+        //   next = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
+        // }
+        // else {
+        //   next = model.cells[cell.target.id].getAttribute("label");
+        // }
 
-        var newStates = {
-          "bootstrap -- Storage Files": {
-            Type: "Pass",
-            Result: [],
-            ResultPath: "$.storageFiles",
-            Next: "bootstrap"
-          },
-          "bootstrap -- Params": {
-            Type: "Pass",
-            Result: {
-              "skillname": "bootstrap",
-              "stepname": "bootstrap"
-            },
-            ResultPath: "$.params",
-            Next: "bootstrap -- Storage Files"
-          },
-          "bootstrap": {
-            Type: "Task",
-            Resource: "arn:aws:states:us-east-1:288440868010:activity:dev_oliveWorker",
-            ResultPath: "$.bootstrap",
-            TimeoutSeconds: 60,
-            Next: next,
-            Catch: [
-              {
-                "ErrorEquals": [
-                  "States.ALL"
-                ],
-                "Next": "bootstrap -- Error Notification -- Params",
-                "ResultPath": "$.error"
-              }
-            ]
-          },
-          "bootstrap -- Error Notification -- Params": {
-            Type: "Pass",
-            Result: {
-              channel: "",
-              color: "#f50057",
-              text: "bootstrap failed",
-              title: "Plan Failure"
-            },
-            ResultPath: "$.params",
-            Next: "bootstrap -- Error Notification"
-          },
-          "bootstrap -- Error Notification": {
-            Type: "Task",
-            Resource: "arn:aws:lambda:us-east-1:288440868010:function:slack-notification",
-            ResultPath: "$['error notification']",
-            TimeoutSeconds: 60,
-            Next: "bootstrap -- Failure"
-          },
-          "bootstrap -- Failure": {
-            Type: "Fail",
-            Error: "Plan Failure",
-            Cause: "bootstrap failed"
-          }
+        var label = 'bootstrap';
+        var skillDetails = {
+          label: label,
+          skillname: 'bootstrap',
+          comment: 'Automatically added bootstrap skill.',
+          storageFiles: [],
+          params: {},
+          timeout_seconds: 60,
+          overrideResultPath: '$.bootstrap',
+          noCleanup: true,
+          // next: next
         };
-        Object.assign(states, newStates);
+        var newStates = buildSkill(skillDetails);
         continue;
       }
       if (awssfUtils.isStart(cell)) continue;
