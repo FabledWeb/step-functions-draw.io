@@ -1901,6 +1901,10 @@ Draw.loadPlugin(function(ui) {
       }
     }
 
+    if (skill.next){
+      data[label].Next = skill.next;
+    }
+
     // check and set isEndNode
     data[label] = setIsEndNode(exist_next_edge, data[label]);
 
@@ -1999,13 +2003,13 @@ Draw.loadPlugin(function(ui) {
       }
       if (awssfUtils.isStartAt(cell)){
         startat = 'bootstrap -- Params';
-        // var next = '';
-        // if(awssfUtils.isSkill(cell.target)){
-        //   next = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
-        // }
-        // else {
-        //   next = model.cells[cell.target.id].getAttribute("label");
-        // }
+        var next = '';
+        if(awssfUtils.isSkill(cell.target)){
+          next = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
+        }
+        else {
+          next = model.cells[cell.target.id].getAttribute("label");
+        }
 
         var label = 'bootstrap';
         var skillDetails = {
@@ -2017,7 +2021,7 @@ Draw.loadPlugin(function(ui) {
           timeout_seconds: 60,
           overrideResultPath: '$.bootstrap',
           noCleanup: true,
-          // next: next
+          next: next
         };
         var newStates = buildSkill(skillDetails);
         continue;
