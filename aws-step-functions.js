@@ -616,8 +616,8 @@ Draw.loadPlugin(function(ui) {
       res.push("skillname MUST be filled in");
     }
 
-    if (!cell.getAttribute("label").indexOf(' ') > -1) {
-      res.push("label / state name cannot contain spaces for a skill... sorry");
+    if (cell.getAttribute("label").indexOf(' ') > -1) {
+      res.push("skill label ("+cell.getAttribute("label")+") cannot contain spaces for a skill... sorry");
     }
     return awssfUtils.validateCommonAttributes(cell, res, true);
   };
@@ -2002,7 +2002,9 @@ Draw.loadPlugin(function(ui) {
         continue;
       }
       if (awssfUtils.isStartAt(cell)){
-        startat = 'bootstrap -- Params';
+        var label = 'bootstrap';
+
+        startat = awssfUtils.buildParamsLabel(label);
         var next = '';
         if(awssfUtils.isSkill(cell.target)){
           next = awssfUtils.buildParamsLabel(model.cells[cell.target.id].getAttribute("label"));
@@ -2011,7 +2013,6 @@ Draw.loadPlugin(function(ui) {
           next = model.cells[cell.target.id].getAttribute("label");
         }
 
-        var label = 'bootstrap';
         var skillDetails = {
           label: label,
           skillname: 'bootstrap',
