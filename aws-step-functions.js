@@ -2024,6 +2024,7 @@ Draw.loadPlugin(function(ui) {
           next: next
         };
         var newStates = buildSkill(skillDetails);
+        Object.assign(states, newStates);
         continue;
       }
       if (awssfUtils.isStart(cell)) continue;
