@@ -617,7 +617,7 @@ Draw.loadPlugin(function(ui) {
     }
 
     if (cell.getAttribute("label").indexOf(' ') > -1) {
-      res.push("skill label ("+cell.getAttribute("label")+") cannot contain spaces for a skill... sorry");
+      res.push("skill label ("+cell.getAttribute("label")+") cannot contain spaces... sorry");
     }
     return awssfUtils.validateCommonAttributes(cell, res, true);
   };
