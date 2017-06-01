@@ -1664,8 +1664,8 @@ Draw.loadPlugin(function(ui) {
             document.getElementById('skillname-skilldetails').value = '';
           }
         });
-        var datalist = document.createElement('datalist');
-        datalist.id = "skills-datalist";
+        var skillDatalist = document.createElement('datalist');
+        skillDatalist.id = "skills-datalist";
         if (setupAWSconfig()){
           var skillDefDom = document.createElement('textarea');
           skillDefDom.id = 'skillname-skilldetails';
@@ -1677,25 +1677,25 @@ Draw.loadPlugin(function(ui) {
             for (var j in resources){
               var opt = document.createElement('option');
               opt.value = resources[j];
-              datalist.appendChild(opt);
+              skillDatalist.appendChild(opt);
             };
           });
           div.appendChild(skillDefDom);
         }
-        div.appendChild(datalist);
+        div.appendChild(skillDatalist);
       }
       else if ((typeof(AWS) === "object") && (nodeName == 'connector')){
         var input = addText(count, nodeName, nodeValue);
         count++;
         input.setAttribute("list", "connector-datalist");
-        var datalist = document.createElement('datalist');
-        datalist.id = "connector-datalist";
+        var connectorDatalist = document.createElement('datalist');
+        connectorDatalist.id = "connector-datalist";
         if (setupAWSconfig()){
           getSkillList('connectors', function(resources){
             for (var j in resources){
               var opt = document.createElement('option');
               opt.value = resources[j];
-              datalist.appendChild(opt);
+              connectorDatalist.appendChild(opt);
             };
           });
         }
