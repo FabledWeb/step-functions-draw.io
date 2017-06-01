@@ -566,6 +566,8 @@ Draw.loadPlugin(function(ui) {
     cell.setAttribute('comment', '');
     cell.setAttribute('skillname', '');
     cell.setAttribute('params', '{}');
+    cell.setAttribute('connector', '');
+    cell.setAttribute('connectorParams', {});
     cell.setAttribute('storageFiles', '[]');
     cell.setAttribute('timeout_seconds', 600);
     cell.setAttribute('heartbeat_seconds', '');
@@ -681,6 +683,10 @@ Draw.loadPlugin(function(ui) {
     Object.assign(params, globalParams);
     Object.assign(params, localParams);
     params.skillname = cell.getAttribute("skillname");
+    params.connector = cell.getAttribute("connector") || "";
+    if(params.connector !== "") {
+      params.connectorParams = cell.getAttribute("connectorParams") || {};
+    }
     params.stepname = label;
     data[paramsLabel] = {
       Type: "Pass",
@@ -1667,7 +1673,7 @@ Draw.loadPlugin(function(ui) {
           skillDefDom.placeholder = "choose a skillname to see its skill definition";
           skillDefDom.style.height = '70px';
           skillDefDom.style.width = '96%';
-          getSkillList(function(resources){
+          getSkillList(null, function(resources){
             for (var j in resources){
               var opt = document.createElement('option');
               opt.value = resources[j];
@@ -1675,6 +1681,23 @@ Draw.loadPlugin(function(ui) {
             };
           });
           div.appendChild(skillDefDom);
+        }
+        div.appendChild(datalist);
+      }
+      else if ((typeof(AWS) === "object") && (nodeName == 'connector')){
+        var input = addText(count, nodeName, nodeValue);
+        count++;
+        input.setAttribute("list", "connector-datalist");
+        var datalist = document.createElement('datalist');
+        datalist.id = "connector-datalist";
+        if (setupAWSconfig()){
+          getSkillList('connectors', function(resources){
+            for (var j in resources){
+              var opt = document.createElement('option');
+              opt.value = resources[j];
+              datalist.appendChild(opt);
+            };
+          });
         }
         div.appendChild(datalist);
       }
@@ -2130,11 +2153,14 @@ Draw.loadPlugin(function(ui) {
     });
   }
 
-  function getSkillList(callback){
+  function getSkillList(type, callback){
     if (!setupAWSconfig()) return;
     var list = [];
     var s3 = new AWS.S3({apiVersion: '2015-03-31'});
     var prefix = 'skill_definitions/';
+    if (type) {
+      prefix+= type + '/';
+    }
 
     var params = {
       Bucket: 'crosschx-olive-assets-dev', /* required */
