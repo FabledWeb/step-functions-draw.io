@@ -567,7 +567,7 @@ Draw.loadPlugin(function(ui) {
     cell.setAttribute('skillname', '');
     cell.setAttribute('params', '{}');
     cell.setAttribute('connector', '');
-    cell.setAttribute('connectorParams', {});
+    cell.setAttribute('connectorParams', '{}');
     cell.setAttribute('storageFiles', '[]');
     cell.setAttribute('timeout_seconds', 600);
     cell.setAttribute('heartbeat_seconds', '');
