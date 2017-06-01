@@ -1699,7 +1699,7 @@ Draw.loadPlugin(function(ui) {
             };
           });
         }
-        div.appendChild(datalist);
+        div.appendChild(connectorDatalist);
       }
       else if (nodeName == 'label' && (awssfUtils.isChoice(cell) || awssfUtils.isRetry(cell) || awssfUtils.isCatch(cell))){
         var input = addText(count, nodeName, nodeValue);
