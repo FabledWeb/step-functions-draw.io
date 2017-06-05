@@ -1924,7 +1924,10 @@ Draw.loadPlugin(function(ui) {
       data[label].Next = skill.next;
     }
 
-    if (!skill.isTeardown) {
+    if (skill.isTeardown) {
+      data[label].End = true;
+    }
+    else {
       // check and set isEndNode
       data[label] = setIsEndNode(exist_next_edge, data[label]);
     }
