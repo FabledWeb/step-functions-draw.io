@@ -380,8 +380,8 @@ Draw.loadPlugin(function(ui) {
   registCodec(PlanConfig);
 
   function setIsEndNode(exist_next_edge, nodeData) {
-    if (exist_next_edge == false || nodeData.Next == 'End'){
-      nodeData['Next'] = 'cleanup';
+    if (exist_next_edge == false || nodeData.Next == 'End' && ){
+      nodeData['Next'] = awssfUtils.buildParamsLabel('teardown');
       console.log('nodeData', nodeData);
     }
     return nodeData;
@@ -1924,8 +1924,10 @@ Draw.loadPlugin(function(ui) {
       data[label].Next = skill.next;
     }
 
-    // check and set isEndNode
-    data[label] = setIsEndNode(exist_next_edge, data[label]);
+    if (!skill.isTeardown) {
+      // check and set isEndNode
+      data[label] = setIsEndNode(exist_next_edge, data[label]);
+    }
 
     // build Pass to serve as storageFiles input to Task
     var storageFilesLabel =  awssfUtils.buildStorageFilesLabel(label);
@@ -2049,18 +2051,6 @@ Draw.loadPlugin(function(ui) {
       }
       if (awssfUtils.isStart(cell)) continue;
       if (awssfUtils.isEnd(cell)){
-        // var newStates = {
-        //   cleanup: {
-        //     Type: "Task",
-        //     Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
-        //     InputPath: "$.bootstrap",
-        //     ResultPath: "$.cleanup",
-        //     TimeoutSeconds: 60,
-        //     End: true
-        //   }
-        // };
-        // Object.assign(states, newStates);
-        //
         var skillDetails = {
           label: 'teardown',
           skillname: 'internal/teardown',
@@ -2070,7 +2060,8 @@ Draw.loadPlugin(function(ui) {
           timeout_seconds: 60,
           overrideResultPath: '$.teardown',
           noCleanup: true,
-          next: null
+          next: null,
+          isTeardown: true
         };
         var newStates = buildSkill(skillDetails);
         Object.assign(states, newStates);
