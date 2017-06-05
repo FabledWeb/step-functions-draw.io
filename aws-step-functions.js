@@ -624,7 +624,63 @@ Draw.loadPlugin(function(ui) {
     return awssfUtils.validateCommonAttributes(cell, res, true);
   };
   SkillState.prototype.toJSON = function(cell, cells){
-    // build params
+    var data = {};
+
+    // build Task
+    var label = cell.getAttribute("label");
+    data[label] = {
+      Type: "Task",
+      Resource: 'arn:aws:states:us-east-1:288440868010:activity:dev_oliveWorker',
+      ResultPath: "$.results['" + cell.getAttribute('label') + "']"
+    };
+    if (cell.getAttribute("comment"))
+      data[label].Comment = cell.getAttribute("comment");
+    if (cell.getAttribute("timeout_seconds"))
+      data[label].TimeoutSeconds = Number(cell.getAttribute("timeout_seconds"));
+    if (cell.getAttribute("heartbeat_seconds"))
+      data[label].HeartbeatSeconds = Number(cell.getAttribute("heartbeat_seconds"));
+
+    var exist_next_edge = false;
+    var exist_catch_edge = false;
+    if (cell.edges){
+      var sorted_edges = cell.edges.sort(function(a, b){
+        if (Number(a.getAttribute("weight")) > Number(b.getAttribute("weight"))) return -1;
+        if (Number(a.getAttribute("weight")) < Number(b.getAttribute("weight"))) return 1;
+        return 0;
+      });
+      for(var i in sorted_edges){
+        var edge = sorted_edges[i];
+        if (edge.source != cell) continue;
+        if (edge.awssf && edge.awssf.toJSON){
+          if (awssfUtils.isRetry(edge)){
+            if (!data[label]["Retry"]) data[label]["Retry"] = [];
+            data[label]["Retry"].push(edge.awssf.toJSON(edge, cells));
+          }
+          else if (awssfUtils.isCatch(edge)){
+            if (!data[label]["Catch"]) data[label]["Catch"] = [];
+            data[label]["Catch"].push(edge.awssf.toJSON(edge, cells));
+            exist_catch_edge = true;
+          }else if (awssfUtils.isNext(edge)){
+            exist_next_edge = true;
+            Object.assign(data[label], edge.awssf.toJSON(edge, cells))
+          }
+        }
+      }
+    }
+    data[label] = setIsEndNode(exist_next_edge, data[label]);
+
+    // build Pass to serve as storageFiles input to Task
+    var storageFilesLabel =  awssfUtils.buildStorageFilesLabel(label);
+    var storageFiles = JSON.parse(cell.getAttribute("storageFiles") || "[]");
+    data[storageFilesLabel] = {
+      Type: "Pass",
+      Result: storageFiles,
+      ResultPath: '$.storageFiles',
+      Next: label
+    };
+
+    // build Pass to serve as params input to Task
+    var paramsLabel =  awssfUtils.buildParamsLabel(label);
     var localParams = JSON.parse(cell.getAttribute("params") || "{}");
     var globalParams = getGlobalParams();
     var params = {};
@@ -643,16 +699,53 @@ Draw.loadPlugin(function(ui) {
       Next: storageFilesLabel
     };
 
-    var skillDetails = {
-      label: cell.getAttribute("label"),
-      timeout_seconds: cell.getAttribute("timeout_seconds"),
-      comment: cell.getAttribute("comment"),
-      heartbeat_seconds: cell.getAttribute("heartbeat_seconds"),
-      storageFiles: JSON.parse(cell.getAttribute("storageFiles") || "[]"),
-      params: params,
-      skillname: cell.getAttribute("skillname"),
+    // build Catch for this Task
+    var errorCleanupLabel =  awssfUtils.buildErrorCleanupLabel(label);
+    var failedLabel =  awssfUtils.buildFailedLabel(label);
+    var errorNotificationLabel =  awssfUtils.buildErrorNotificationLabel(label);
+    var errorNotificationParamsLabel =  awssfUtils.buildParamsLabel(errorNotificationLabel);
+
+    data[errorCleanupLabel] = {
+      Type: "Task",
+      Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
+      InputPath: "$['bootstrap','error']",
+      ResultPath: "$['error cleanup']",
+      TimeoutSeconds: 60,
+      Next: errorNotificationParamsLabel
     };
-    var data = buildSkill(skillDetails, cell, cells);
+    // build Pass to serve as params input to Task
+    data[errorNotificationParamsLabel] = {
+      Type: "Pass",
+      Result: {
+        "channel":"",
+        "color":"#f50057",
+        "text":"skill failed: " + label,
+        "title":"Plan Failure"
+      },
+      ResultPath: '$.params',
+      Next: errorNotificationLabel
+    };
+    data[errorNotificationLabel] = {
+      Type: "Task",
+      Resource: 'arn:aws:lambda:us-east-1:288440868010:function:slack-notification',
+      ResultPath: "$['error notification']",
+      TimeoutSeconds: 60,
+      Next: failedLabel
+    };
+    data[failedLabel] = {
+      Type: "Fail",
+      "Error": "Plan Failure",
+      "Cause": "skill failed: " + label
+    };
+    if (!data[label]["Catch"]) data[label]["Catch"] = [];
+    data[label]["Catch"].push({
+      "ErrorEquals": [
+        "States.ALL"
+      ],
+      "Next": errorCleanupLabel,
+      "ResultPath": "$.error"
+    });
+
     return data;
   };
   registCodec(SkillState);
