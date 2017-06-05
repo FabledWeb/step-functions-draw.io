@@ -380,7 +380,7 @@ Draw.loadPlugin(function(ui) {
   registCodec(PlanConfig);
 
   function setIsEndNode(exist_next_edge, nodeData) {
-    if (exist_next_edge == false || nodeData.Next == 'End' && ){
+    if (exist_next_edge == false || nodeData.Next == 'End'){
       nodeData['Next'] = awssfUtils.buildParamsLabel('teardown');
       console.log('nodeData', nodeData);
     }
