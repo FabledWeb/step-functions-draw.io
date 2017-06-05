@@ -624,128 +624,23 @@ Draw.loadPlugin(function(ui) {
     return awssfUtils.validateCommonAttributes(cell, res, true);
   };
   SkillState.prototype.toJSON = function(cell, cells){
-    var data = {};
-
-    // build Task
-    var label = cell.getAttribute("label");
-    data[label] = {
-      Type: "Task",
-      Resource: 'arn:aws:states:us-east-1:288440868010:activity:dev_oliveWorker',
-      ResultPath: "$.results['" + cell.getAttribute('label') + "']"
-    };
-    if (cell.getAttribute("comment"))
-      data[label].Comment = cell.getAttribute("comment");
-    if (cell.getAttribute("timeout_seconds"))
-      data[label].TimeoutSeconds = Number(cell.getAttribute("timeout_seconds"));
-    if (cell.getAttribute("heartbeat_seconds"))
-      data[label].HeartbeatSeconds = Number(cell.getAttribute("heartbeat_seconds"));
-
-    var exist_next_edge = false;
-    var exist_catch_edge = false;
-    if (cell.edges){
-      var sorted_edges = cell.edges.sort(function(a, b){
-        if (Number(a.getAttribute("weight")) > Number(b.getAttribute("weight"))) return -1;
-        if (Number(a.getAttribute("weight")) < Number(b.getAttribute("weight"))) return 1;
-        return 0;
-      });
-      for(var i in sorted_edges){
-        var edge = sorted_edges[i];
-        if (edge.source != cell) continue;
-        if (edge.awssf && edge.awssf.toJSON){
-          if (awssfUtils.isRetry(edge)){
-            if (!data[label]["Retry"]) data[label]["Retry"] = [];
-            data[label]["Retry"].push(edge.awssf.toJSON(edge, cells));
-          }
-          else if (awssfUtils.isCatch(edge)){
-            if (!data[label]["Catch"]) data[label]["Catch"] = [];
-            data[label]["Catch"].push(edge.awssf.toJSON(edge, cells));
-            exist_catch_edge = true;
-          }else if (awssfUtils.isNext(edge)){
-            exist_next_edge = true;
-            Object.assign(data[label], edge.awssf.toJSON(edge, cells))
-          }
-        }
-      }
-    }
-    data[label] = setIsEndNode(exist_next_edge, data[label]);
-
-    // build Pass to serve as storageFiles input to Task
-    var storageFilesLabel =  awssfUtils.buildStorageFilesLabel(label);
-    var storageFiles = JSON.parse(cell.getAttribute("storageFiles") || "[]");
-    data[storageFilesLabel] = {
-      Type: "Pass",
-      Result: storageFiles,
-      ResultPath: '$.storageFiles',
-      Next: label
-    };
-
-    // build Pass to serve as params input to Task
-    var paramsLabel =  awssfUtils.buildParamsLabel(label);
+    // build params
     var localParams = JSON.parse(cell.getAttribute("params") || "{}");
     var globalParams = getGlobalParams();
     var params = {};
     Object.assign(params, globalParams);
     Object.assign(params, localParams);
-    params.skillname = cell.getAttribute("skillname");
-    params.connector = cell.getAttribute("connector") || "";
-    if(params.connector !== "") {
-      params.connectorParams = cell.getAttribute("connectorParams") || {};
-    }
-    params.stepname = label;
-    data[paramsLabel] = {
-      Type: "Pass",
-      Result: params,
-      ResultPath: '$.params',
-      Next: storageFilesLabel
-    };
 
-    // build Catch for this Task
-    var errorCleanupLabel =  awssfUtils.buildErrorCleanupLabel(label);
-    var failedLabel =  awssfUtils.buildFailedLabel(label);
-    var errorNotificationLabel =  awssfUtils.buildErrorNotificationLabel(label);
-    var errorNotificationParamsLabel =  awssfUtils.buildParamsLabel(errorNotificationLabel);
-
-    data[errorCleanupLabel] = {
-      Type: "Task",
-      Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
-      InputPath: "$['bootstrap','error']",
-      ResultPath: "$['error cleanup']",
-      TimeoutSeconds: 60,
-      Next: errorNotificationParamsLabel
+    var skillDetails = {
+      label: cell.getAttribute("label"),
+      timeout_seconds: cell.getAttribute("timeout_seconds"),
+      comment: cell.getAttribute("comment"),
+      heartbeat_seconds: cell.getAttribute("heartbeat_seconds"),
+      storageFiles: JSON.parse(cell.getAttribute("storageFiles") || "[]"),
+      params: params,
+      skillname: cell.getAttribute("skillname"),
     };
-    // build Pass to serve as params input to Task
-    data[errorNotificationParamsLabel] = {
-      Type: "Pass",
-      Result: {
-        "channel":"",
-        "color":"#f50057",
-        "text":"skill failed: " + label,
-        "title":"Plan Failure"
-      },
-      ResultPath: '$.params',
-      Next: errorNotificationLabel
-    };
-    data[errorNotificationLabel] = {
-      Type: "Task",
-      Resource: 'arn:aws:lambda:us-east-1:288440868010:function:slack-notification',
-      ResultPath: "$['error notification']",
-      TimeoutSeconds: 60,
-      Next: failedLabel
-    };
-    data[failedLabel] = {
-      Type: "Fail",
-      "Error": "Plan Failure",
-      "Cause": "skill failed: " + label
-    };
-    if (!data[label]["Catch"]) data[label]["Catch"] = [];
-    data[label]["Catch"].push({
-      "ErrorEquals": [
-        "States.ALL"
-      ],
-      "Next": errorCleanupLabel,
-      "ResultPath": "$.error"
-    });
-
+    var data = buildSkill(skillDetails, cell, cells);
     return data;
   };
   registCodec(SkillState);
@@ -2139,7 +2034,7 @@ Draw.loadPlugin(function(ui) {
 
         var skillDetails = {
           label: label,
-          skillname: 'bootstrap',
+          skillname: 'internal/bootstrap',
           comment: 'Automatically added bootstrap skill.',
           storageFiles: [],
           params: {},
@@ -2154,16 +2049,30 @@ Draw.loadPlugin(function(ui) {
       }
       if (awssfUtils.isStart(cell)) continue;
       if (awssfUtils.isEnd(cell)){
-        var newStates = {
-          cleanup: {
-            Type: "Task",
-            Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
-            InputPath: "$.bootstrap",
-            ResultPath: "$.cleanup",
-            TimeoutSeconds: 60,
-            End: true
-          }
+        // var newStates = {
+        //   cleanup: {
+        //     Type: "Task",
+        //     Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
+        //     InputPath: "$.bootstrap",
+        //     ResultPath: "$.cleanup",
+        //     TimeoutSeconds: 60,
+        //     End: true
+        //   }
+        // };
+        // Object.assign(states, newStates);
+        //
+        var skillDetails = {
+          label: 'teardown',
+          skillname: 'internal/teardown',
+          comment: 'Automatically added teardown skill.',
+          storageFiles: [],
+          params: {},
+          timeout_seconds: 60,
+          overrideResultPath: '$.teardown',
+          noCleanup: true,
+          next: null
         };
+        var newStates = buildSkill(skillDetails);
         Object.assign(states, newStates);
         continue;
       }
@@ -2295,7 +2204,8 @@ Draw.loadPlugin(function(ui) {
     if (!setupAWSconfig()) return;
     var list = [];
     var s3 = new AWS.S3({apiVersion: '2015-03-31'});
-    var prefix = 'skill_definitions/';
+    var basePrefix = 'skill_definitions/'
+    var prefix = basePrefix;
     if (type) {
       prefix+= type + '/';
     }
@@ -2314,7 +2224,7 @@ Draw.loadPlugin(function(ui) {
       else{
         console.log(data);
         list = data.Contents.map(function(item) {
-          var itemName = item.Key.replace(/\.json$/,'').replace(prefix, '');
+          var itemName = item.Key.replace(/\.json$/,'').replace(basePrefix, '');
           return itemName;
         }).filter(function(itemName) {
           return itemName != '';
