@@ -626,10 +626,16 @@ Draw.loadPlugin(function(ui) {
   SkillState.prototype.toJSON = function(cell, cells){
     // build params
     var localParams = JSON.parse(cell.getAttribute("params") || "{}");
+    var connector = cell.getAttribute("connector");
+
     var globalParams = getGlobalParams();
     var params = {};
     Object.assign(params, globalParams);
     Object.assign(params, localParams);
+    if (connector) {
+      params.connector = connector;
+      params.connectorParams = JSON.parse(cell.getAttribute("connectorParams") || "{}");
+    }
 
     var skillDetails = {
       label: cell.getAttribute("label"),
