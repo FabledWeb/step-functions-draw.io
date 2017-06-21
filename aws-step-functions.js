@@ -2163,7 +2163,13 @@ Draw.loadPlugin(function(ui) {
       //mxUtils.alert("You need to put a AWSconfig.")
       return {};
     }
-    var config = codec.decode(found);
+    var configNode = codec.decode(found);
+    var config = {
+      "env": configNode.getAttribute('env'),
+      "schedule": configNode.getAttribute('schedule'),
+      "label": configNode.getAttribute('label'),
+      "globalParams": JSON.parse(planConfig.getAttribute('globalParams') || "{}")
+    };
     return config;
   }
 
