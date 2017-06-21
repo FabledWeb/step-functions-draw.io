@@ -2168,7 +2168,7 @@ Draw.loadPlugin(function(ui) {
       "env": configNode.getAttribute('env'),
       "schedule": configNode.getAttribute('schedule'),
       "label": configNode.getAttribute('label'),
-      "globalParams": JSON.parse(planConfig.getAttribute('globalParams') || "{}")
+      "globalParams": JSON.parse(configNode.getAttribute('globalParams') || "{}")
     };
     return config;
   }
