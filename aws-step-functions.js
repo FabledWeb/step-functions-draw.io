@@ -638,14 +638,14 @@ Draw.loadPlugin(function(ui) {
       params.connector = connector;
       params.connectorParams = JSON.parse(cell.getAttribute("connectorParams") || "{}");
       if(cell.getAttribute("timeout_seconds")) {
-        // connector skill should wait 2 minutes longer than the skill it will be running remotely
-        timeoutSeconds += 120;
+        // connector skill should wait 5 minutes longer than the skill it will be running remotely
+        timeoutSeconds += 300;
         params.connectorParams.commandTimeoutSeconds = timeoutSeconds;
       }
     }
 
-    // step functions state should wait 2 minutes longer than the skill it is running
-    timeoutSeconds += 120;
+    // step functions state should wait 15 minutes longer than the skill it is running
+    timeoutSeconds += 900;
 
     var skillDetails = {
       label: cell.getAttribute("label"),
