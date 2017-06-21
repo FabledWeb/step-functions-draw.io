@@ -366,7 +366,8 @@ Draw.loadPlugin(function(ui) {
     cell.value = mxUtils.createXmlDocument().createElement('object');
     cell.setAttribute('label', 'Plan Config');
     cell.setAttribute('type', 'awssfPlanConfig');
-    cell.setAttribute('schedule', '0 * * * *');
+    cell.setAttribute('schedule', '');
+    cell.setAttribute('env', '');
     cell.setAttribute('globalParams', '{}');
     cell.awssf = awsf;
     return cell;
@@ -1894,11 +1895,13 @@ Draw.loadPlugin(function(ui) {
   function buildSkill(skill, cell, cells){
     var data = {};
     var label = skill.label;
+    var planConfig = getPlanConfig();
+    var env = planConfig.env || 'dev';
 
     // build Task
     data[label] = {
       Type: "Task",
-      Resource: 'arn:aws:states:us-east-1:288440868010:activity:dev_oliveWorker',
+      Resource: 'arn:aws:states:us-east-1:288440868010:activity:'+env+'_oliveWorker',
       ResultPath: skill.overrideResultPath || "$.results['" + label + "']"
     };
     if (skill.comment)
@@ -2151,6 +2154,19 @@ Draw.loadPlugin(function(ui) {
     return true;
   }
 
+  function getPlanConfig(){
+    var codec = new mxCodec();
+    var model = ui.editor.graph.getModel();
+    var node = codec.encode(model);
+    var found = mxUtils.findNode(node, "type", "awssfPlanConfig");
+    if (found == null){
+      //mxUtils.alert("You need to put a AWSconfig.")
+      return {};
+    }
+    var config = codec.decode(found);
+    return config;
+  }
+
   function getCallerIdentity(callback){
     var sts = new AWS.STS({apiVersion: '2011-06-15'});
     sts.getCallerIdentity({}, function(err, data) {
@@ -2187,18 +2203,15 @@ Draw.loadPlugin(function(ui) {
 
   function getSkillDefinition(skillName, callback){
     if (!setupAWSconfig()) return;
+    var planConfig = getPlanConfig();
+    var env = planConfig.env || 'dev';
     var def = {};
     var s3 = new AWS.S3({apiVersion: '2006-03-01'});
     var prefix = 'skill_definitions/';
 
     var params = {
-      Bucket: 'crosschx-olive-assets-dev', /* required */
-      Key: prefix + skillName + '.json',
-      // Delimiter: 'STRING_VALUE',
-      // EncodingType: url,
-      // Marker: 'STRING_VALUE',
-      // MaxKeys: 0,
-      // RequestPayer: requester
+      Bucket: 'crosschx-olive-assets-'+env, /* required */
+      Key: prefix + skillName + '.json'
     };
     s3.getObject(params, function(err, data) {
       var obj = {};
@@ -2213,6 +2226,8 @@ Draw.loadPlugin(function(ui) {
 
   function getSkillList(type, callback){
     if (!setupAWSconfig()) return;
+    var planConfig = getPlanConfig();
+    var env = planConfig.env || 'dev';
     var list = [];
     var s3 = new AWS.S3({apiVersion: '2015-03-31'});
     var basePrefix = 'skill_definitions/'
@@ -2222,13 +2237,8 @@ Draw.loadPlugin(function(ui) {
     }
 
     var params = {
-      Bucket: 'crosschx-olive-assets-dev', /* required */
-      Prefix: prefix,
-      // Delimiter: 'STRING_VALUE',
-      // EncodingType: url,
-      // Marker: 'STRING_VALUE',
-      // MaxKeys: 0,
-      // RequestPayer: requester
+      Bucket: 'crosschx-olive-assets-'+env, /* required */
+      Prefix: prefix
     };
     s3.listObjects(params, function(err, data) {
       if (err) console.log(err, err.stack); // an error occurred
