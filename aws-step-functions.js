@@ -630,16 +630,26 @@ Draw.loadPlugin(function(ui) {
 
     var globalParams = getGlobalParams();
     var params = {};
+    var timeoutSeconds = Number(cell.getAttribute("timeout_seconds"));
+    params.commandTimeoutSeconds = timeoutSeconds;
     Object.assign(params, globalParams);
     Object.assign(params, localParams);
     if (connector) {
       params.connector = connector;
       params.connectorParams = JSON.parse(cell.getAttribute("connectorParams") || "{}");
+      if(cell.getAttribute("timeout_seconds")) {
+        // connector skill should wait 2 minutes longer than the skill it will be running remotely
+        timeoutSeconds += 120;
+        params.connectorParams.commandTimeoutSeconds = timeoutSeconds;
+      }
     }
+
+    // step functions state should wait 2 minutes longer than the skill it is running
+    timeoutSeconds += 120;
 
     var skillDetails = {
       label: cell.getAttribute("label"),
-      timeout_seconds: cell.getAttribute("timeout_seconds"),
+      timeout_seconds: timeoutSeconds,
       comment: cell.getAttribute("comment"),
       heartbeat_seconds: cell.getAttribute("heartbeat_seconds"),
       storageFiles: JSON.parse(cell.getAttribute("storageFiles") || "[]"),
@@ -1952,6 +1962,7 @@ Draw.loadPlugin(function(ui) {
     var params = { // automatic params
       skillname: skill.skillname,
       stepname: label,
+      commandTimeoutSeconds: data[label].TimeoutSeconds
     };
     Object.assign(params, skill.params); // add in params from skill
     var paramsLabel = awssfUtils.buildParamsLabel(label);
