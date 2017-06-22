@@ -1978,6 +1978,7 @@ Draw.loadPlugin(function(ui) {
 
     // build Catch for this Task
     var errorCleanupLabel =  awssfUtils.buildErrorCleanupLabel(label);
+    var errorCleanupParamsLabel =  awssfUtils.buildParamsLabel(errorCleanupLabel);
     var failedLabel =  awssfUtils.buildFailedLabel(label);
     var errorNotificationLabel =  awssfUtils.buildErrorNotificationLabel(label);
     var errorNotificationParamsLabel =  awssfUtils.buildParamsLabel(errorNotificationLabel);
@@ -2016,7 +2017,7 @@ Draw.loadPlugin(function(ui) {
       Resource: 'arn:aws:lambda:us-east-1:288440868010:function:slack-notification',
       ResultPath: "$['error notification']",
       TimeoutSeconds: 60,
-      Next: skill.noCleanup ? failedLabel : errorCleanupLabel
+      Next: skill.noCleanup ? failedLabel : errorCleanupParamsLabel
     };
     data[failedLabel] = {
       Type: "Fail",
