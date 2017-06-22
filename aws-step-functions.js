@@ -1943,7 +1943,7 @@ Draw.loadPlugin(function(ui) {
       data[label].Next = skill.next;
     }
 
-    if (skill.isTeardown) {
+    if (skill.isEnd) {
       data[label].End = true;
     }
     else {
@@ -1983,14 +1983,21 @@ Draw.loadPlugin(function(ui) {
     var errorNotificationParamsLabel =  awssfUtils.buildParamsLabel(errorNotificationLabel);
 
     if(!skill.noCleanup) {
-      data[errorCleanupLabel] = {
-        Type: "Task",
-        Resource: 'arn:aws:lambda:us-east-1:288440868010:function:olivePlanCleanup',
-        InputPath: "$['bootstrap','error']",
-        ResultPath: "$['error cleanup']",
-        TimeoutSeconds: 60,
-        Next: errorNotificationParamsLabel
+
+      var skillDetails = {
+        label: errorCleanupLabel,
+        skillname: 'internal/teardown',
+        comment: 'Automatically added error teardown skill.',
+        storageFiles: [],
+        params: {},
+        timeout_seconds: 60,
+        overrideResultPath: '$.teardown',
+        noCleanup: true,
+        next: failedLabel,
+        isEnd: false
       };
+      var newStates = buildSkill(skillDetails);
+      Object.assign(data, newStates);
     }
     // build Pass to serve as params input to Error Notification Task
     data[errorNotificationParamsLabel] = {
@@ -2009,7 +2016,7 @@ Draw.loadPlugin(function(ui) {
       Resource: 'arn:aws:lambda:us-east-1:288440868010:function:slack-notification',
       ResultPath: "$['error notification']",
       TimeoutSeconds: 60,
-      Next: failedLabel
+      Next: skill.noCleanup ? failedLabel : errorCleanupLabel
     };
     data[failedLabel] = {
       Type: "Fail",
@@ -2022,7 +2029,7 @@ Draw.loadPlugin(function(ui) {
         "States.ALL"
       ],
       // start the error flow at cleanup if it exists, otherwise start at error notification params
-      "Next": data[errorCleanupLabel] ? errorCleanupLabel : errorNotificationParamsLabel,
+      "Next": errorNotificationParamsLabel,
       "ResultPath": "$.error"
     });
 
@@ -2084,7 +2091,7 @@ Draw.loadPlugin(function(ui) {
           overrideResultPath: '$.teardown',
           noCleanup: true,
           next: null,
-          isTeardown: true
+          isEnd: true
         };
         var newStates = buildSkill(skillDetails);
         Object.assign(states, newStates);
