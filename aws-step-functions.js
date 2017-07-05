@@ -665,8 +665,7 @@ Draw.loadPlugin(function(ui) {
     this.custom = function(){
       this.domNode.appendChild(NextEdge.prototype.createHandlerImage.apply(this, arguments));
       this.domNode.appendChild(CatchEdge.prototype.createHandlerImage.apply(this, arguments));
-      // TODO: support retries for skills
-      // this.domNode.appendChild(RetryEdge.prototype.createHandlerImage.apply(this, arguments));
+      this.domNode.appendChild(RetryEdge.prototype.createHandlerImage.apply(this, arguments));
     };
     awssfStateHandler.apply(this, arguments);
   }
@@ -1185,7 +1184,7 @@ Draw.loadPlugin(function(ui) {
     cell.geometry.setTerminalPoint(new mxPoint(cell.geometry.width, 0), false);
     // cell.setAttribute('label', '%error_equals%');
     cell.setAttribute('placeholders', 1);
-    cell.setAttribute('error_equals', '');
+    cell.setAttribute('error_equals', 'States.ALL');
     cell.setAttribute('interval_seconds', 1);
     cell.setAttribute('max_attempts', 3);
     cell.setAttribute('backoff_rate', 2);
